@@ -16,7 +16,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/update/gauge/", handlers.HandleGauge)
 	mux.HandleFunc("/update/counter/", handlers.HandleCounter)
-	mux.HandleFunc("/update/unknown/", handlers.)
+	mux.HandleFunc("/update/unknown/", handlers.HandleUnknown)
 
 	addr := "127.0.0.1:8080"
 	server := &http.Server{Handler: mux, Addr: addr}
