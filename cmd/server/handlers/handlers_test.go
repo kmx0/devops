@@ -9,6 +9,7 @@ import (
 	"github.com/kmx0/devops/internal/repositories"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandleCounter(t *testing.T) {
@@ -80,6 +81,8 @@ func TestHandleCounter(t *testing.T) {
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
 			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
+			err := res.Body.Close()
+			require.NoError(t, err)
 			// mapresult, err := ioutil.ReadAll(res.Body)
 			// HandleCounter(tt.args.w, tt.args.r)
 		})
@@ -153,6 +156,8 @@ func TestHandleGauge(t *testing.T) {
 			assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
 			// mapresult, err := ioutil.ReadAll(res.Body)
 			// HandleCounter(tt.args.w, tt.args.r)
+			err := res.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }

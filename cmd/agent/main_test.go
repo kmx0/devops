@@ -1,10 +1,14 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/kmx0/devops/internal/types"
+)
 
 func Test_sendMetrics(t *testing.T) {
 	type args struct {
-		rm RunMetrics
+		rm types.RunMetrics
 	}
 	tests := []struct {
 		name string
