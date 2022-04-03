@@ -9,82 +9,46 @@ import (
 	"os/signal"
 	"reflect"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/fatih/structs"
+	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
 
-type (
-	gauge float64
-
-	counter int64
-
-	RunMetrics struct {
-		Alloc         gauge
-		BuckHashSys   gauge
-		Frees         gauge
-		GCCPUFraction gauge
-		GCSys         gauge
-		HeapAlloc     gauge
-		HeapIdle      gauge
-		HeapInuse     gauge
-		HeapObjects   gauge
-		HeapReleased  gauge
-		HeapSys       gauge
-		LastGC        gauge
-		Lookups       gauge
-		MCacheInuse   gauge
-		MCacheSys     gauge
-		MSpanInuse    gauge
-		MSpanSys      gauge
-		Mallocs       gauge
-		NextGC        gauge
-		NumForcedGC   gauge
-		NumGC         gauge
-		OtherSys      gauge
-		PauseTotalNs  gauge
-		StackInuse    gauge
-		StackSys      gauge
-		Sys           gauge
-		TotalAlloc    gauge
-		PollCount     counter
-		RandomValue   gauge
-	}
-)
-
-func fill(ms runtime.MemStats, rm *RunMetrics) {
-	rm.Alloc = gauge(ms.Alloc)
-	rm.BuckHashSys = gauge(ms.BuckHashSys)
-	rm.Frees = gauge(ms.Frees)
-	rm.GCCPUFraction = gauge(ms.GCCPUFraction)
-	rm.GCSys = gauge(ms.GCSys)
-	rm.HeapAlloc = gauge(ms.HeapAlloc)
-	rm.HeapIdle = gauge(ms.HeapIdle)
-	rm.HeapInuse = gauge(ms.HeapInuse)
-	rm.HeapObjects = gauge(ms.HeapObjects)
-	rm.HeapReleased = gauge(ms.HeapReleased)
-	rm.HeapSys = gauge(ms.HeapSys)
-	rm.LastGC = gauge(ms.LastGC)
-	rm.Lookups = gauge(ms.Lookups)
-	rm.MCacheInuse = gauge(ms.MCacheInuse)
-	rm.MCacheSys = gauge(ms.MCacheSys)
-	rm.MSpanInuse = gauge(ms.MSpanInuse)
-	rm.MSpanSys = gauge(ms.MSpanSys)
-	rm.Mallocs = gauge(ms.Mallocs)
-	rm.NextGC = gauge(ms.NextGC)
-	rm.NumForcedGC = gauge(ms.NumForcedGC)
-	rm.NumGC = gauge(ms.NumGC)
-	rm.OtherSys = gauge(ms.OtherSys)
-	rm.PauseTotalNs = gauge(ms.PauseTotalNs)
-	rm.StackInuse = gauge(ms.StackInuse)
-	rm.StackSys = gauge(ms.StackSys)
-	rm.Sys = gauge(ms.Sys)
-	rm.TotalAlloc = gauge(ms.TotalAlloc)
+func fill(ms runtime.MemStats, rm *types.RunMetrics) {
+	rm.Alloc = types.Gauge(ms.Alloc)
+	rm.BuckHashSys = types.Gauge(ms.BuckHashSys)
+	rm.Frees = types.Gauge(ms.Frees)
+	rm.GCCPUFraction = types.Gauge(ms.GCCPUFraction)
+	rm.GCSys = types.Gauge(ms.GCSys)
+	rm.HeapAlloc = types.Gauge(ms.HeapAlloc)
+	rm.HeapIdle = types.Gauge(ms.HeapIdle)
+	rm.HeapInuse = types.Gauge(ms.HeapInuse)
+	rm.HeapObjects = types.Gauge(ms.HeapObjects)
+	rm.HeapReleased = types.Gauge(ms.HeapReleased)
+	rm.HeapSys = types.Gauge(ms.HeapSys)
+	rm.LastGC = types.Gauge(ms.LastGC)
+	rm.Lookups = types.Gauge(ms.Lookups)
+	rm.MCacheInuse = types.Gauge(ms.MCacheInuse)
+	rm.MCacheSys = types.Gauge(ms.MCacheSys)
+	rm.MSpanInuse = types.Gauge(ms.MSpanInuse)
+	rm.MSpanSys = types.Gauge(ms.MSpanSys)
+	rm.Mallocs = types.Gauge(ms.Mallocs)
+	rm.NextGC = types.Gauge(ms.NextGC)
+	rm.NumForcedGC = types.Gauge(ms.NumForcedGC)
+	rm.NumGC = types.Gauge(ms.NumGC)
+	rm.OtherSys = types.Gauge(ms.OtherSys)
+	rm.PauseTotalNs = types.Gauge(ms.PauseTotalNs)
+	rm.StackInuse = types.Gauge(ms.StackInuse)
+	rm.StackSys = types.Gauge(ms.StackSys)
+	rm.Sys = types.Gauge(ms.Sys)
+	rm.TotalAlloc = types.Gauge(ms.TotalAlloc)
 	rm.PollCount += 1
 	rand.Seed(time.Now().UnixNano())
-	rm.RandomValue = gauge(rand.Float64())
+	rm.RandomValue = types.Gauge(rand.Float64())
 }
 
 var (
@@ -93,7 +57,7 @@ var (
 )
 
 func main() {
-	rm := RunMetrics{}
+	rm := types.RunMetrics{}
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
 	logrus.SetReportCaller(true)
@@ -163,7 +127,7 @@ func main() {
 
 }
 
-func sendMetrics(rm RunMetrics) {
+func sendMetrics(rm types.RunMetrics) {
 	// в формате: http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
 	// адрес сервиса (как его писать, расскажем в следующем уроке)
 	rmMap := structs.Map(rm)
@@ -176,8 +140,9 @@ func sendMetrics(rm RunMetrics) {
 		// logrus.Info(rmMap[val.Type().Field(i).Name])
 		// logrus.Info(fmt.Sprintf("%v", rmMap[val.Type().Field(i).Name]))
 		// logrus.Info(reflect.TypeOf(rmMap[val.Type().Field(i).Name]))
-		endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, val.Type().Field(i).Type.Name(), val.Type().Field(i).Name, rmMap[val.Type().Field(i).Name])
+		endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(val.Type().Field(i).Type.Name()), val.Type().Field(i).Name, rmMap[val.Type().Field(i).Name])
 		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
+		logrus.Info()
 		client := &http.Client{}
 
 		request, err := http.NewRequest(http.MethodPost, endpoint, nil)
