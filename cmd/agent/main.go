@@ -107,7 +107,7 @@ func main() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
-	exit_chan := make(chan int)
+	exitChan := make(chan int)
 	go func() {
 		for {
 			s := <-signalChanel
@@ -115,20 +115,20 @@ func main() {
 			// kill -SIGHUP XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGINT:
 				fmt.Println("Signal interrupt triggered.")
-				exit_chan <- 0
+				exitChan <- 0
 				// kill -SIGTERM XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGTERM:
 				fmt.Println("Signal terminte triggered.")
-				exit_chan <- 0
+				exitChan <- 0
 
 				// kill -SIGQUIT XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGQUIT:
 				fmt.Println("Signal quit triggered.")
-				exit_chan <- 0
+				exitChan <- 0
 
 			default:
 				fmt.Println("Unknown signal.")
-				exit_chan <- 1
+				exitChan <- 1
 			}
 		}
 	}()
@@ -152,7 +152,7 @@ func main() {
 
 	// }
 	// runtime.ReadMemStats()
-	exitCode := <-exit_chan
+	exitCode := <-exitChan
 	//stoping ticker
 	logrus.Warn("Stopping tickerFill")
 	tickerFill.Stop()
