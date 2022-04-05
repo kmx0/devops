@@ -83,14 +83,14 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusOK)
 	default:
-		logrus.Info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		w.WriteHeader(http.StatusNotImplemented)
 	}
 
 }
 
-// func HandleUnknown(w http.ResponseWriter, r *http.Request) {
-// 	w.WriteHeader(http.StatusNotImplemented)
-// }
+func HandleUnknown(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // func HandleSl(w http.ResponseWriter, r *http.Request) {
 // 	logrus.Info("SL")
