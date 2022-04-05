@@ -57,13 +57,14 @@ func HandleValue(c *gin.Context) {
 		value, err := store.GetGauge(typeM, metric)
 		logrus.Info(err)
 		if err != nil {
-			c.Status(http.StatusBadRequest)
+			c.Status(http.StatusNotFound)
 			return
 		}
 		c.String(http.StatusOK, value.String())
 		return
 	default:
 		c.Status(http.StatusNotFound)
+
 		return
 
 	}
