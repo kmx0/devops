@@ -7,7 +7,6 @@ import (
 
 	"github.com/kmx0/devops/cmd/server/storage"
 	"github.com/kmx0/devops/internal/repositories"
-	"github.com/kmx0/devops/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,15 +17,13 @@ func TestHandleCounter(t *testing.T) {
 		contetnType string
 		statusCode  int
 		// counter     types.Counter
-		inmemWant repositories.Repository
 	}
 	// var store repositories.Repository
 
 	tests := []struct {
-		name     string
-		req      string
-		inmemReq repositories.Repository
-		want     wantStruct
+		name string
+		req  string
+		want wantStruct
 	}{
 		// {
 		// 	name:     "test 1",
@@ -42,29 +39,19 @@ func TestHandleCounter(t *testing.T) {
 		// 	},
 		// },
 		{
-			name:     "without_id",
-			req:      "/update/counter/",
-			inmemReq: storage.NewInMemory(),
+			name: "without_id",
+			req:  "/update/counter/",
 			want: wantStruct{
 				statusCode:  404,
 				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
 			},
 		},
 		{
-			name:     "invalid_value",
-			req:      "/update/counter/testCounter/none",
-			inmemReq: storage.NewInMemory(),
+			name: "invalid_value",
+			req:  "/update/counter/testCounter/none",
 			want: wantStruct{
 				statusCode:  400,
 				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
 			},
 		},
 		// {
@@ -93,7 +80,6 @@ func TestHandleCounter(t *testing.T) {
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
 			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
 			err := res.Body.Close()
 			require.NoError(t, err)
 			// mapresult, err := ioutil.ReadAll(res.Body)
@@ -107,90 +93,58 @@ func TestHandleGauge(t *testing.T) {
 	type wantStruct struct {
 		contetnType string
 		statusCode  int
-		inmemWant   repositories.Repository
 	}
 	tests := []struct {
-		name     string
-		req      string
-		inmemReq repositories.Repository
-		want     wantStruct
+		name string
+		req  string
+		want wantStruct
 	}{
 		{
-			name:     "gauge test 1",
-			req:      "/update/gauge/Alloc/24534",
-			inmemReq: storage.NewInMemory(),
+			name: "gauge test 1",
+			req:  "/update/gauge/Alloc/24534",
 			want: wantStruct{
 				statusCode:  200,
 				contetnType: "text/plain",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
 			},
 		},
 		{
-			name:     "gauge test 2",
-			req:      "/update/gauge/BuckHashSys/1213.2",
-			inmemReq: storage.NewInMemory(),
+			name: "gauge test 2",
+			req:  "/update/gauge/BuckHashSys/1213.2",
 			want: wantStruct{
 				statusCode:  200,
 				contetnType: "text/plain",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
 			},
 		},
 		{
-			name:     "gauge test 3",
-			req:      "/update/gauge/RandomValue/",
-			inmemReq: storage.NewInMemory(),
+			name: "gauge test 3",
+			req:  "/update/gauge/RandomValue/",
 			want: wantStruct{
 				statusCode:  400,
 				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
 			},
 		},
 		{
-			name:     "without_id",
-			req:      "/update/gauge/",
-			inmemReq: storage.NewInMemory(),
+			name: "without_id",
+			req:  "/update/gauge/",
 			want: wantStruct{
 				statusCode:  404,
 				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
+				// inmemWant: &storage.InMemory{
+				// 	MapCounter: make(map[string]types.Counter),
+				// 	MapGauge:   make(map[string]types.Gauge),
+				// },
 			},
 		},
 		{
-			name:     "invalid_value",
-			req:      "/update/gauge/testGauge/none",
-			inmemReq: storage.NewInMemory(),
+			name: "update_invalid_type",
+			req:  "/update/gauge/testGauge/none",
 			want: wantStruct{
 				statusCode:  400,
 				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
-			},
-		}, //update_invalid_type
-		{
-			name:     "update_invalid_type",
-			req:      "/update/gauge/testGauge/none",
-			inmemReq: storage.NewInMemory(),
-			want: wantStruct{
-				statusCode:  400,
-				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
+				// inmemWant: &storage.InMemory{
+				// 	MapCounter: make(map[string]types.Counter),
+				// 	MapGauge:   make(map[string]types.Gauge),
+				// },
 			},
 		},
 	}
@@ -206,7 +160,7 @@ func TestHandleGauge(t *testing.T) {
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
 			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
+			// assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
 			// mapresult, err := ioutil.ReadAll(res.Body)
 			// HandleCounter(tt.args.w, tt.args.r)
 			err := res.Body.Close()
@@ -221,7 +175,7 @@ func TestHandleUnknown(t *testing.T) {
 		contetnType string
 		statusCode  int
 		// counter     types.Counter
-		inmemWant repositories.Repository
+		// inmemWant repositories.Repository
 	}
 	// var store repositories.Repository
 
@@ -238,10 +192,10 @@ func TestHandleUnknown(t *testing.T) {
 			want: wantStruct{
 				statusCode:  501,
 				contetnType: "",
-				inmemWant: &storage.InMemory{
-					MapCounter: make(map[string]types.Counter),
-					MapGauge:   make(map[string]types.Gauge),
-				},
+				// inmemWant: &storage.InMemory{
+				// 	MapCounter: make(map[string]types.Counter),
+				// 	MapGauge:   make(map[string]types.Gauge),
+				// },
 			},
 		},
 
@@ -271,7 +225,7 @@ func TestHandleUnknown(t *testing.T) {
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
 			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
+			// assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
 			err := res.Body.Close()
 			require.NoError(t, err)
 			// mapresult, err := ioutil.ReadAll(res.Body)
