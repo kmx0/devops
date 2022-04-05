@@ -1,5 +1,7 @@
 package types
 
+import "fmt"
+
 type (
 	Gauge float64
 
@@ -37,3 +39,11 @@ type (
 		RandomValue   Gauge
 	}
 )
+
+func (g Gauge) String() string {
+	return fmt.Sprintf("%f", g)
+}
+func (c Counter) String() string {
+	return fmt.Sprintf("%d", c)
+}
+

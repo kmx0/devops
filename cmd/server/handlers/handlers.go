@@ -24,8 +24,53 @@ func SetupRouter() *gin.Engine {
 	r.POST("/update/gauge/", HandleWithoutID)
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
+
+	r.GET("/", HandleAllValues)
+	r.GET("/value/:typem/:metric", HandleValue)
+	// r.GET("/value/counter/:metric", HandleValue)
+	// r.GET("/", HandleValue)
+	// http://<АДРЕС_СЕРВЕРА>/value/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ> (со статусом http.StatusOK).
 	return r
 }
+
+func HandleAllValues(c *gin.Context) {
+	gg, cntr, _ := store.GetCurrentMetrics()
+
+	c.String(http.StatusOK, "%+v\n%+v", gg, cntr)
+	// ntf("%s/%s/%s/%v", endpoint, val.Type().Field(i).Type.Nam
+}
+
+func HandleValue(c *gin.Context) {
+	typeM := c.Param("typem")
+	metric := c.Param("metric")
+	logrus.Info(metric)
+	switch typeM {
+	case "counter":
+		value, err := store.GetCounter(typeM, metric)
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.String(http.StatusOK, value.String())
+		return
+	case "gauge":
+		value, err := store.GetGauge(typeM, metric)
+		logrus.Info(err)
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.String(http.StatusOK, value.String())
+		return
+	default:
+		c.Status(http.StatusNotFound)
+		return
+
+	}
+	// c.Status(http.StatusNotFound)
+	// c.String(http)
+}
+
 func HandleWithoutID(c *gin.Context) {
 	c.Status(http.StatusNotFound)
 }
@@ -71,12 +116,3 @@ func HandleUpdate(c *gin.Context) {
 	}
 
 }
-
-// func HandleUnknown(w http.ResponseWriter, r *http.Request) {
-// 	w.WriteHeader(http.StatusNotImplemented)
-// }
-
-// func HandleSl(w http.ResponseWriter, r *http.Request) {
-// 	logrus.Info("SL")
-// 	w.WriteHeader(http.StatusNotImplemented)
-// }
