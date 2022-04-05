@@ -50,7 +50,9 @@ func (s *InMemory) Update(metricType string, metric string, value string) error 
 		s.MapCounter[metric] += types.Counter(valueInt64)
 	case "gauge":
 		if _, ok := s.MetricNames[metric]; !ok {
-			return errors.New("not such metric")
+			// return errors.New("not such metric")
+			logrus.Info("Adding new metric ", metric, " Gauge")
+
 		}
 
 		valueFloat64, err := strconv.ParseFloat(value, 64)

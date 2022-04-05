@@ -103,8 +103,8 @@ func HandleUpdate(c *gin.Context) {
 		logrus.Info(err)
 		if err != nil {
 			switch {
-			case strings.Contains(err.Error(), `not such metric`):
-				c.Status(http.StatusBadRequest)
+			// case strings.Contains(err.Error(), `not such metric`):
+			// 	c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
 				c.Status(http.StatusBadRequest)
 			default:
