@@ -3,67 +3,30 @@ package main
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
-	"reflect"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 
-	"github.com/fatih/structs"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
 
-func fill(ms runtime.MemStats, rm *types.RunMetrics) {
-	rm.Alloc = types.Gauge(ms.Alloc)
-	rm.BuckHashSys = types.Gauge(ms.BuckHashSys)
-	rm.Frees = types.Gauge(ms.Frees)
-	rm.GCCPUFraction = types.Gauge(ms.GCCPUFraction)
-	rm.GCSys = types.Gauge(ms.GCSys)
-	rm.HeapAlloc = types.Gauge(ms.HeapAlloc)
-	rm.HeapIdle = types.Gauge(ms.HeapIdle)
-	rm.HeapInuse = types.Gauge(ms.HeapInuse)
-	rm.HeapObjects = types.Gauge(ms.HeapObjects)
-	rm.HeapReleased = types.Gauge(ms.HeapReleased)
-	rm.HeapSys = types.Gauge(ms.HeapSys)
-	rm.LastGC = types.Gauge(ms.LastGC)
-	rm.Lookups = types.Gauge(ms.Lookups)
-	rm.MCacheInuse = types.Gauge(ms.MCacheInuse)
-	rm.MCacheSys = types.Gauge(ms.MCacheSys)
-	rm.MSpanInuse = types.Gauge(ms.MSpanInuse)
-	rm.MSpanSys = types.Gauge(ms.MSpanSys)
-	rm.Mallocs = types.Gauge(ms.Mallocs)
-	rm.NextGC = types.Gauge(ms.NextGC)
-	rm.NumForcedGC = types.Gauge(ms.NumForcedGC)
-	rm.NumGC = types.Gauge(ms.NumGC)
-	rm.OtherSys = types.Gauge(ms.OtherSys)
-	rm.PauseTotalNs = types.Gauge(ms.PauseTotalNs)
-	rm.StackInuse = types.Gauge(ms.StackInuse)
-	rm.StackSys = types.Gauge(ms.StackSys)
-	rm.Sys = types.Gauge(ms.Sys)
-	rm.TotalAlloc = types.Gauge(ms.TotalAlloc)
-	rm.PollCount += 1
-	rand.Seed(time.Now().UnixNano())
-	rm.RandomValue = types.Gauge(rand.Float64())
-}
-
 var (
-	pollInterval   = 2 * time.Second
-	reportInterval = 10 * time.Second
+	pollInterval                     = 2 * time.Second
+	reportInterval                   = 10 * time.Second
+	rm             *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
 )
 
 func main() {
-	rm := types.RunMetrics{}
+	// rm := types.RunMetrics{}
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
 	logrus.SetReportCaller(true)
 	logrus.Info(m.Alloc)
-	fill(m, &rm)
-	logrus.Infof("%+v", rm)
+	rm.Set(m)
 	// return
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
@@ -102,7 +65,7 @@ func main() {
 		for {
 			<-tickerFill.C
 			runtime.ReadMemStats(&m)
-			fill(m, &rm)
+			rm.Set(m)
 		}
 	}()
 
@@ -110,7 +73,8 @@ func main() {
 	go func() {
 		for {
 			<-tickerSendMetrics.C
-			sendMetrics(rm)
+			// rm.ULock()
+			sendMetrics()
 		}
 	}()
 
@@ -127,25 +91,19 @@ func main() {
 
 }
 
-func sendMetrics(rm types.RunMetrics) {
+func sendMetrics() {
 	// в формате: http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
 	// адрес сервиса (как его писать, расскажем в следующем уроке)
-	rmMap := structs.Map(rm)
-	val := reflect.ValueOf(rm)
-	for i := 0; i < val.NumField(); i++ {
-		endpoint := "http://127.0.0.1:8080/update"
-		// fmt.Println(rm)
-		// logrus.Info(val.Type().Field(i).Type.Name())
-		// logrus.Info(val.Type().Field(i).Name)
-		// logrus.Info(rmMap[val.Type().Field(i).Name])
-		// logrus.Info(fmt.Sprintf("%v", rmMap[val.Type().Field(i).Name]))
-		// logrus.Info(reflect.TypeOf(rmMap[val.Type().Field(i).Name]))
-		endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(val.Type().Field(i).Type.Name()), val.Type().Field(i).Name, rmMap[val.Type().Field(i).Name])
-		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
-		logrus.Info()
+	// rm.Lock()
+
+	ret := rm.Get()
+	// logrus.Info(ret)
+	// return
+	for i := 0; i < len(ret); i++ {
+
 		client := &http.Client{}
 
-		request, err := http.NewRequest(http.MethodPost, endpoint, nil)
+		request, err := http.NewRequest(http.MethodPost, ret[i], nil)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -171,5 +129,4 @@ func sendMetrics(rm types.RunMetrics) {
 		// и печатаем его
 		fmt.Println(string(body))
 	}
-	logrus.Info(rm.Alloc, rm.PollCount, rm.RandomValue)
 }
