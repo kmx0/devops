@@ -57,7 +57,7 @@ func HandleValue(c *gin.Context) {
 		value, err := store.GetGauge(typeM, metric)
 		logrus.Info(err)
 		if err != nil {
-			c.Status(http.StatusNotFound)
+			c.Status(http.StatusBadRequest)
 			return
 		}
 		c.String(http.StatusOK, value.String())
@@ -103,6 +103,8 @@ func HandleUpdate(c *gin.Context) {
 		logrus.Info(err)
 		if err != nil {
 			switch {
+			case strings.Contains(err.Error(), `not such metric`):
+				c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
 				c.Status(http.StatusBadRequest)
 			default:

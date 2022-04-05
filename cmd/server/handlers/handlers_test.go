@@ -147,73 +147,73 @@ func TestHandleUpdate(t *testing.T) {
 // 	}
 // }
 
-func TestHandleValue(t *testing.T) {
-	SetRepository(storage.NewInMemory())
-	type wantStruct struct {
-		statusCode int
-		// counter     types.Counter
-	}
-	// var store repositories.Repository
+// func TestHandleValue(t *testing.T) {
+// 	SetRepository(storage.NewInMemory())
+// 	type wantStruct struct {
+// 		statusCode int
+// 		// counter     types.Counter
+// 	}
+// 	// var store repositories.Repository
 
-	router := SetupRouter()
-	tests := []struct {
-		name string
-		req  string
-		want wantStruct
-	}{
-		// {
-		// 	name: "update",
-		// 	req:  "/update/counter/testCounter/100",
-		// 	want: wantStruct{
-		// 		statusCode: 200,
-		// 	},
-		// },
-		// {
-		// 	name: "without_id_counter",
-		// 	req:  "/update/counter/",
-		// 	want: wantStruct{
-		// 		statusCode: 404,
-		// 	},
-		// },
-		// {
-		// 	name: "invalid_value",
-		// 	req:  "/update/counter/testCounter/none",
-		// 	want: wantStruct{
-		// 		statusCode: 400,
-		// 	},
-		// },
-		{
-			name: "without_id_gauge",
-			req:  "/update/gauge/",
-			want: wantStruct{
-				statusCode: 404,
-			},
-		},
-		{
-			name: "update_sequence",
-			req:  "/value/gauge/testSetGet134",
-			want: wantStruct{
-				statusCode: 400,
-			},
-		},
-	}
-	w := httptest.NewRecorder()
-	// requestPost, _ := http.NewRequest(http.MethodGet, "/value/gauge/testSetGet134", nil)
+// 	router := SetupRouter()
+// 	tests := []struct {
+// 		name string
+// 		req  string
+// 		want wantStruct
+// 	}{
+// 		// {
+// 		// 	name: "update",
+// 		// 	req:  "/update/counter/testCounter/100",
+// 		// 	want: wantStruct{
+// 		// 		statusCode: 200,
+// 		// 	},
+// 		// },
+// 		// {
+// 		// 	name: "without_id_counter",
+// 		// 	req:  "/update/counter/",
+// 		// 	want: wantStruct{
+// 		// 		statusCode: 404,
+// 		// 	},
+// 		// },
+// 		// {
+// 		// 	name: "invalid_value",
+// 		// 	req:  "/update/counter/testCounter/none",
+// 		// 	want: wantStruct{
+// 		// 		statusCode: 400,
+// 		// 	},
+// 		// },
+// 		{
+// 			name: "without_id_gauge",
+// 			req:  "/update/gauge/",
+// 			want: wantStruct{
+// 				statusCode: 404,
+// 			},
+// 		},
+// 		{
+// 			name: "update_sequence",
+// 			req:  "/value/gauge/testSetGet134",
+// 			want: wantStruct{
+// 				statusCode: 400,
+// 			},
+// 		},
+// 	}
+// 	w := httptest.NewRecorder()
+// 	// requestPost, _ := http.NewRequest(http.MethodGet, "/value/gauge/testSetGet134", nil)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
 
-			logrus.Info(tt.req)
-			request, _ := http.NewRequest(http.MethodGet, tt.req, nil)
+// 			logrus.Info(tt.req)
+// 			request, _ := http.NewRequest(http.MethodGet, tt.req, nil)
 
-			router.ServeHTTP(w, request)
-			res := w.Result()
+// 			router.ServeHTTP(w, request)
+// 			res := w.Result()
 
-			assert.Equal(t, tt.want.statusCode, res.StatusCode)
-			err := res.Body.Close()
-			require.NoError(t, err)
-			// mapresult, err := ioutil.ReadAll(res.Body)
-			// HandleCounter(tt.args.w, tt.args.r)
-		})
-	}
-}
+// 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+// 			err := res.Body.Close()
+// 			require.NoError(t, err)
+// 			// mapresult, err := ioutil.ReadAll(res.Body)
+// 			// HandleCounter(tt.args.w, tt.args.r)
+// 		})
+// 	}
+// }
