@@ -15,6 +15,8 @@ type InMemory struct {
 }
 
 func (s *InMemory) Update(metricType string, metric string, value string) error {
+	logrus.SetReportCaller(true)
+
 	switch metricType {
 	case "counter":
 		if _, ok := s.MetricNames[metric]; !ok {

@@ -19,6 +19,7 @@ func TestHandleUpdate(t *testing.T) {
 	}
 	// var store repositories.Repository
 
+	router := SetupRouter()
 	tests := []struct {
 		name string
 		req  string
@@ -63,15 +64,13 @@ func TestHandleUpdate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewRouter()
-			ts := httptest.NewServer(r)
-			defer ts.Close()
-			logrus.Info(tt.req)
-			request := httptest.NewRequest(http.MethodPost, ts.URL+tt.req, nil)
-			w := httptest.NewRecorder()
 
-			h := http.HandlerFunc(HandleUpdate)
-			h.ServeHTTP(w, request)
+			logrus.Info(tt.req)
+			w := httptest.NewRecorder()
+			// req, _ := http.NewRequest("GET", "/ping", nil)
+			request, _ := http.NewRequest(http.MethodPost, tt.req, nil)
+
+			router.ServeHTTP(w, request)
 			res := w.Result()
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)

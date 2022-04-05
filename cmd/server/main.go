@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	r := handlers.NewRouter()
+	r := handlers.SetupRouter()
 	addr := "127.0.0.1:8080"
 
 	log.Fatal(http.ListenAndServe(addr, r))

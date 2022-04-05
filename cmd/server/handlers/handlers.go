@@ -4,8 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/cmd/server/storage"
 	"github.com/kmx0/devops/internal/repositories"
 	"github.com/sirupsen/logrus"
@@ -17,80 +16,65 @@ func SetRepository(s repositories.Repository) {
 	store = s
 }
 
-// func HandleEmptyCounter(w http.ResponseWriter, r *http.Request) {
-// 	w.WriteHeader(http.StatusBadRequest)
-// }
-// func HandleEmptyGauge(w http.ResponseWriter, r *http.Request) {
-// 	w.WriteHeader(http.StatusBadRequest)
-// }
-func NewRouter() chi.Router {
+func SetupRouter() *gin.Engine {
 	store := storage.NewInMemory()
 	SetRepository(store)
-	// logrus.Info(store)
 
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	// r.Get("/", Handl)
-	// r.Get("/", handlers.HandleGauge)
-
-	// r.Post("/update/gauge/", handlers.HandleGauge)
-	// r.Post("/update/counter/", handlers.HandleCounter)
-	// // r.Get("/update/unknown/", handlers.HandleUnknown)
-
-	r.Post("/update/{typem}/{metric}/{value}", HandleUpdate)
-return r
+	r := gin.Default()
+	r.POST("/update/gauge/", HandleWithoutID)
+	r.POST("/update/counter/", HandleWithoutID)
+	r.POST("/update/:typem/:metric/:value", HandleUpdate)
+	return r
 }
-func HandleUpdate(w http.ResponseWriter, r *http.Request) {
-	logrus.Info(r.URL.String())
-	typeM := chi.URLParam(r, "typem")
-	metric := chi.URLParam(r, "metric")
-	value := chi.URLParam(r, "value")
-	logrus.Info(typeM)
-	logrus.Info(metric)
-	logrus.Info(value)
+func HandleWithoutID(c *gin.Context) {
+	c.Status(http.StatusNotFound)
+}
+
+func HandleUpdate(c *gin.Context) {
+	logrus.SetReportCaller(true)
+	typeM := c.Param("typem")
+	metric := c.Param("metric")
+	value := c.Param("value")
+	logrus.Info(typeM, metric, value)
 	switch typeM {
 	case "counter":
-		logrus.Info("counter")
-
 		err := store.Update(typeM, metric, value)
 		if err != nil {
-			switch err.Error() {
-			case `strconv.ParseInt: parsing "none": invalid syntax`:
-				w.WriteHeader(http.StatusBadRequest)
+			logrus.Info(err)
+			switch {
+			case strings.Contains(err.Error(), `strconv.ParseInt: parsing`):
+				c.Status(http.StatusBadRequest)
 			default:
-				w.WriteHeader(http.StatusInternalServerError)
+				c.Status(http.StatusInternalServerError)
 			}
 
 			// logrus.Error(err)
 		}
-		w.WriteHeader(http.StatusOK)
+		// c.Status(http.StatusOK)
 	case "gauge":
 		logrus.Info("gauge")
 
 		err := store.Update(typeM, metric, value)
+		logrus.Info(err)
 		if err != nil {
 			switch {
 			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
-				w.WriteHeader(http.StatusBadRequest)
+				c.Status(http.StatusBadRequest)
 			default:
 				// logrus.Info(err)
-				w.WriteHeader(http.StatusInternalServerError)
+				c.Status(http.StatusInternalServerError)
 			}
 		}
-		w.WriteHeader(http.StatusOK)
+		// c.Status(http.StatusOK)
 	default:
-		w.WriteHeader(http.StatusNotImplemented)
+		c.Status(http.StatusNotImplemented)
 	}
 
 }
 
-func HandleUnknown(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
+// func HandleUnknown(w http.ResponseWriter, r *http.Request) {
+// 	w.WriteHeader(http.StatusNotImplemented)
+// }
 
 // func HandleSl(w http.ResponseWriter, r *http.Request) {
 // 	logrus.Info("SL")
