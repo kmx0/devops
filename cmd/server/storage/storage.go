@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"reflect"
 	"strconv"
 
 	"github.com/kmx0/devops/internal/repositories"
@@ -13,7 +12,7 @@ import (
 type InMemory struct {
 	MapCounter  map[string]types.Counter
 	MapGauge    map[string]types.Gauge
-	MetricNames map[string]struct{}
+	MetricNames map[string]interface{}
 }
 
 func (s *InMemory) GetCurrentMetrics() (map[string]types.Gauge, map[string]types.Counter, error) {
@@ -66,15 +65,15 @@ func (s *InMemory) Update(metricType string, metric string, value string) error 
 
 func NewInMemory() repositories.Repository {
 	rm := types.RunMetrics{}
-	val := reflect.ValueOf(rm)
-	metricNames := make(map[string]struct{}, val.NumField())
 	// val := reflect.ValueOf(rm)
-	for i := 0; i < val.NumField(); i++ {
-		metricNames[val.Type().Field(i).Name] = struct{}{}
-	}
+	// metricNames := make(map[string]struct{}, val.NumField())
+	// // val := reflect.ValueOf(rm)
+	// for i := 0; i < val.NumField(); i++ {
+	// 	metricNames[val.Type().Field(i).Name] = struct{}{}
+	// }
 	return &InMemory{
 		MapCounter:  make(map[string]types.Counter),
 		MapGauge:    make(map[string]types.Gauge),
-		MetricNames: metricNames,
+		MetricNames: rm.MapMetrics,
 	}
 }

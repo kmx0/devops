@@ -98,7 +98,6 @@ func HandleUpdate(c *gin.Context) {
 		}
 		// c.Status(http.StatusOK)
 	case "gauge":
-		logrus.Info("gauge")
 
 		err := store.Update(typeM, metric, value)
 		logrus.Info(err)
