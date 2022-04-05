@@ -6,16 +6,15 @@ import (
 	"testing"
 
 	"github.com/kmx0/devops/cmd/server/storage"
-	"github.com/kmx0/devops/internal/repositories"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestHandleCounter(t *testing.T) {
+func TestHandleUpdate(t *testing.T) {
 	SetRepository(storage.NewInMemory())
 	type wantStruct struct {
-		contetnType string
-		statusCode  int
+		statusCode int
 		// counter     types.Counter
 	}
 	// var store repositories.Repository
@@ -25,207 +24,57 @@ func TestHandleCounter(t *testing.T) {
 		req  string
 		want wantStruct
 	}{
-		// {
-		// 	name:     "test 1",
-		// 	req:      "/update/counter/PollCount/4",
-		// 	inmemReq: storage.NewInMemory(),
-		// 	want: wantStruct{
-		// 		statusCode:  200,
-		// 		contetnType: "text/plain",
-		// 		inmemWant: &storage.InMemory{
-		// 			MapCounter: make(map[string]types.Counter),
-		// 			MapGauge:   make(map[string]types.Gauge),
-		// 		},
-		// 	},
-		// },
 		{
-			name: "without_id",
+			name: "update",
+			req:  "/update/counter/testCounter/100",
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+		{
+			name: "without_id_counter",
 			req:  "/update/counter/",
 			want: wantStruct{
-				statusCode:  404,
-				contetnType: "",
+				statusCode: 404,
 			},
 		},
 		{
 			name: "invalid_value",
 			req:  "/update/counter/testCounter/none",
 			want: wantStruct{
-				statusCode:  400,
-				contetnType: "",
-			},
-		},
-		// {
-		// 	name:     "test 3",
-		// 	req:      "/update/counter/PollCount/1.1",
-		// 	inmemReq: storage.NewInMemory(),
-		// 	want: wantStruct{
-		// 		statusCode:  500,
-		// 		contetnType: "",
-		// 		inmemWant: &storage.InMemory{
-		// 			MapCounter: make(map[string]types.Counter),
-		// 			MapGauge:   make(map[string]types.Gauge),
-		// 		},
-		// 	},
-		// },
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			request := httptest.NewRequest(http.MethodGet, tt.req, nil)
-			w := httptest.NewRecorder()
-
-			h := http.HandlerFunc(HandleCounter)
-			h.ServeHTTP(w, request)
-			res := w.Result()
-
-			assert.Equal(t, tt.want.statusCode, res.StatusCode)
-			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
-			err := res.Body.Close()
-			require.NoError(t, err)
-			// mapresult, err := ioutil.ReadAll(res.Body)
-			// HandleCounter(tt.args.w, tt.args.r)
-		})
-	}
-}
-
-func TestHandleGauge(t *testing.T) {
-	SetRepository(storage.NewInMemory())
-	type wantStruct struct {
-		contetnType string
-		statusCode  int
-	}
-	tests := []struct {
-		name string
-		req  string
-		want wantStruct
-	}{
-		{
-			name: "gauge test 1",
-			req:  "/update/gauge/Alloc/24534",
-			want: wantStruct{
-				statusCode:  200,
-				contetnType: "text/plain",
+				statusCode: 400,
 			},
 		},
 		{
-			name: "gauge test 2",
-			req:  "/update/gauge/BuckHashSys/1213.2",
-			want: wantStruct{
-				statusCode:  200,
-				contetnType: "text/plain",
-			},
-		},
-		{
-			name: "gauge test 3",
-			req:  "/update/gauge/RandomValue/",
-			want: wantStruct{
-				statusCode:  400,
-				contetnType: "",
-			},
-		},
-		{
-			name: "without_id",
+			name: "without_id_gauge",
 			req:  "/update/gauge/",
 			want: wantStruct{
-				statusCode:  404,
-				contetnType: "",
-				// inmemWant: &storage.InMemory{
-				// 	MapCounter: make(map[string]types.Counter),
-				// 	MapGauge:   make(map[string]types.Gauge),
-				// },
+				statusCode: 404,
 			},
 		},
 		{
 			name: "update_invalid_type",
 			req:  "/update/gauge/testGauge/none",
 			want: wantStruct{
-				statusCode:  400,
-				contetnType: "",
-				// inmemWant: &storage.InMemory{
-				// 	MapCounter: make(map[string]types.Counter),
-				// 	MapGauge:   make(map[string]types.Gauge),
-				// },
+				statusCode: 400,
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			request := httptest.NewRequest(http.MethodGet, tt.req, nil)
+			r := NewRouter()
+			ts := httptest.NewServer(r)
+			defer ts.Close()
+			logrus.Info(tt.req)
+			request := httptest.NewRequest(http.MethodPost, ts.URL+tt.req, nil)
 			w := httptest.NewRecorder()
 
-			h := http.HandlerFunc(HandleGauge)
+			h := http.HandlerFunc(HandleUpdate)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
-			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
-			// assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
-			// mapresult, err := ioutil.ReadAll(res.Body)
-			// HandleCounter(tt.args.w, tt.args.r)
-			err := res.Body.Close()
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestHandleUnknown(t *testing.T) {
-	SetRepository(storage.NewInMemory())
-	type wantStruct struct {
-		contetnType string
-		statusCode  int
-		// counter     types.Counter
-		// inmemWant repositories.Repository
-	}
-	// var store repositories.Repository
-
-	tests := []struct {
-		name     string
-		req      string
-		inmemReq repositories.Repository
-		want     wantStruct
-	}{
-		{
-			name:     "update_invalid_type",
-			req:      "/update/unknown/testCounter/100",
-			inmemReq: storage.NewInMemory(),
-			want: wantStruct{
-				statusCode:  501,
-				contetnType: "",
-				// inmemWant: &storage.InMemory{
-				// 	MapCounter: make(map[string]types.Counter),
-				// 	MapGauge:   make(map[string]types.Gauge),
-				// },
-			},
-		},
-
-		// {
-		// 	name:     "test 3",
-		// 	req:      "/update/counter/PollCount/1.1",
-		// 	inmemReq: storage.NewInMemory(),
-		// 	want: wantStruct{
-		// 		statusCode:  500,
-		// 		contetnType: "",
-		// 		inmemWant: &storage.InMemory{
-		// 			MapCounter: make(map[string]types.Counter),
-		// 			MapGauge:   make(map[string]types.Gauge),
-		// 		},
-		// 	},
-		// },
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			request := httptest.NewRequest(http.MethodGet, tt.req, nil)
-			w := httptest.NewRecorder()
-
-			h := http.HandlerFunc(HandleUnknown)
-			h.ServeHTTP(w, request)
-			res := w.Result()
-
-			assert.Equal(t, tt.want.statusCode, res.StatusCode)
-			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
-			// assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
 			err := res.Body.Close()
 			require.NoError(t, err)
 			// mapresult, err := ioutil.ReadAll(res.Body)
@@ -233,3 +82,68 @@ func TestHandleUnknown(t *testing.T) {
 		})
 	}
 }
+
+// func TestHandleUnknown(t *testing.T) {
+// 	SetRepository(storage.NewInMemory())
+// 	type wantStruct struct {
+// 		contetnType string
+// 		statusCode  int
+// 		// counter     types.Counter
+// 		// inmemWant repositories.Repository
+// 	}
+// 	// var store repositories.Repository
+
+// 	tests := []struct {
+// 		name     string
+// 		req      string
+// 		inmemReq repositories.Repository
+// 		want     wantStruct
+// 	}{
+// 		{
+// 			name:     "update_invalid_type",
+// 			req:      "/update/unknown/testCounter/100",
+// 			inmemReq: storage.NewInMemory(),
+// 			want: wantStruct{
+// 				statusCode:  501,
+// 				contetnType: "",
+// 				// inmemWant: &storage.InMemory{
+// 				// 	MapCounter: make(map[string]types.Counter),
+// 				// 	MapGauge:   make(map[string]types.Gauge),
+// 				// },
+// 			},
+// 		},
+
+// 		// {
+// 		// 	name:     "test 3",
+// 		// 	req:      "/update/counter/PollCount/1.1",
+// 		// 	inmemReq: storage.NewInMemory(),
+// 		// 	want: wantStruct{
+// 		// 		statusCode:  500,
+// 		// 		contetnType: "",
+// 		// 		inmemWant: &storage.InMemory{
+// 		// 			MapCounter: make(map[string]types.Counter),
+// 		// 			MapGauge:   make(map[string]types.Gauge),
+// 		// 		},
+// 		// 	},
+// 		// },
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+
+// 			request := httptest.NewRequest(http.MethodGet, tt.req, nil)
+// 			w := httptest.NewRecorder()
+
+// 			h := http.HandlerFunc(HandleUnknown)
+// 			h.ServeHTTP(w, request)
+// 			res := w.Result()
+
+// 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+// 			assert.Equal(t, tt.want.contetnType, res.Header.Get("Content-Type"))
+// 			// assert.Equal(t, tt.want.inmemWant, tt.inmemReq)
+// 			err := res.Body.Close()
+// 			require.NoError(t, err)
+// 			// mapresult, err := ioutil.ReadAll(res.Body)
+// 			// HandleCounter(tt.args.w, tt.args.r)
+// 		})
+// 	}
+// }

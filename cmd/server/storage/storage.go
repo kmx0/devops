@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"errors"
-	"reflect"
 	"strconv"
 
 	"github.com/kmx0/devops/internal/repositories"
@@ -18,19 +16,18 @@ type InMemory struct {
 
 func (s *InMemory) Update(metricType string, metric string, value string) error {
 	switch metricType {
-	case "Counter":
+	case "counter":
 		if _, ok := s.MetricNames[metric]; !ok {
-			return errors.New("not such metric name")
+			logrus.Info("Adding new metric ", metric, " Counter")
 		}
 		valueInt64, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return err
 		}
 		s.MapCounter[metric] += types.Counter(valueInt64)
-	case "Gauge":
+	case "gauge":
 		if _, ok := s.MetricNames[metric]; !ok {
-			logrus.Info(errors.New("not such metric name"), metric)
-			return errors.New("not such metric name")
+			logrus.Info("Adding new metric ", metric, " Gauge")
 		}
 
 		valueFloat64, err := strconv.ParseFloat(value, 64)
@@ -43,16 +40,16 @@ func (s *InMemory) Update(metricType string, metric string, value string) error 
 }
 
 func NewInMemory() repositories.Repository {
-	rm := types.RunMetrics{}
-	val := reflect.ValueOf(rm)
-	metricNames := make(map[string]struct{}, val.NumField())
+	// rm := types.RunMetrics{}
 	// val := reflect.ValueOf(rm)
-	for i := 0; i < val.NumField(); i++ {
-		metricNames[val.Type().Field(i).Name] = struct{}{}
-	}
+	// metricNames := make(map[string]struct{}, val.NumField())
+	// // val := reflect.ValueOf(rm)
+	// for i := 0; i < val.NumField(); i++ {
+	// 	metricNames[val.Type().Field(i).Name] = struct{}{}
+	// }
 	return &InMemory{
-		MapCounter:  make(map[string]types.Counter),
-		MapGauge:    make(map[string]types.Gauge),
-		MetricNames: metricNames,
+		MapCounter: make(map[string]types.Counter),
+		MapGauge:   make(map[string]types.Gauge),
+		// MetricNames: metricNames,
 	}
 }
