@@ -82,13 +82,21 @@ func HandleValueJSON(c *gin.Context) {
 
 	// var bodyBytes []byte
 	body := c.Request.Body
+	a := []byte{}
+	_, err := body.Read(a)
+	logrus.Infof("%+v", string(a))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+	}
+	defer body.Close()
 
 	decoder := json.NewDecoder(body)
 	// var t test_struct
 	var metrics types.Metrics
-	err := decoder.Decode(&metrics)
+
+	err = decoder.Decode(&metrics)
 	if err != nil {
-		c.Status(http.StatusNotFound)
+		c.Status(http.StatusBadRequest)
 	}
 	// c.Request.Bodyjj
 	logrus.Info(metrics)
