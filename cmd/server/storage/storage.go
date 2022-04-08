@@ -33,7 +33,37 @@ func (s *InMemory) GetCounter(metricType string, metric string) (types.Counter, 
 	}
 	return s.MapCounter[metric], nil
 }
+func (s *InMemory) UpdateJSON(metrics types.Metrics) error {
+	logrus.SetReportCaller(true)
 
+	switch metrics.MType {
+	case "counter":
+		if _, ok := s.MetricNames[metrics.ID]; !ok {
+			logrus.Info("Adding new metric ", metrics.ID, " Counter")
+		}
+		// c := metrics.Delta
+
+		// valueInt64, err := strconv.ParseInt(*c, 10, 64)
+		// if err != nil {
+		// 	return err
+		// }
+		logrus.Warn(*(metrics).Delta)
+		s.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
+	case "gauge":
+		if _, ok := s.MetricNames[metrics.ID]; !ok {
+			// return errors.New("not such metric")
+			logrus.Info("Adding new metric ", metrics.ID, " Gauge")
+
+		}
+
+		// valueFloat64, err := strconv.ParseFloat(value, 64)
+		// if err != nil {
+		// 	return err
+		// }
+		s.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
+	}
+	return nil
+}
 func (s *InMemory) Update(metricType string, metric string, value string) error {
 	logrus.SetReportCaller(true)
 

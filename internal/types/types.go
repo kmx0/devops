@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -8,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -49,6 +52,12 @@ type (
 		MapMetrics map[string]interface{}
 	}
 )
+type Metrics struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
 
 func (g Gauge) String() string {
 	return fmt.Sprintf("%.3f", g)
@@ -57,22 +66,59 @@ func (c Counter) String() string {
 	return fmt.Sprintf("%d", c)
 }
 
-func (rm *RunMetrics) Get() (ret []string) {
+func (rm *RunMetrics) Get() (endpoint string, metricsForBody []Metrics) {
 
+	metrics := make([]Metrics, len(rm.MapMetrics))
 	rm.Lock()
 	defer rm.Unlock()
 	// val := reflect.ValueOf(rm)
+	i := 0
 	for k, v := range rm.MapMetrics {
-		endpoint := "http://127.0.0.1:8080/update"
+		// endpoint :=
 
-		endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(reflect.TypeOf(v).Name()), k, v)
-		ret = append(ret, endpoint)
+		// endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(reflect.TypeOf(v).Name()), k, v)
+		//counter or gauge
+
+		ty := strings.ToLower(reflect.TypeOf(v).Name()) //тип метрики
+		switch ty {
+		case "counter":
+			vc, ok := v.(Counter)
+			if !ok {
+
+				panic(errors.New("cannot convert interface to int64"))
+			}
+			vi64 := int64(vc)
+			logrus.Errorf("%+v", v)
+			logrus.Errorf("%+v", vi64)
+			metrics[i] = Metrics{
+				ID:    k,
+				MType: strings.ToLower(reflect.TypeOf(v).Name()),
+				Delta: &vi64,
+			}
+		case "gauge":
+			// vf64, ok := v.(float64)
+			vg, ok := v.(Gauge)
+			if !ok {
+
+				panic(errors.New("cannot convert interface to float64"))
+			}
+			vf64 := float64(vg)
+			// logrus.Errorf("%+v", v)
+			// logrus.Errorf("%+v", vf64)
+			metrics[i] = Metrics{
+				ID:    k,
+				MType: strings.ToLower(reflect.TypeOf(v).Name()),
+				Value: &vf64,
+			}
+
+		}
+		i++
 	}
 
 	// endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(val.Type().Field(i).Type.Name()), val.Type().Field(i).Name, rmMap[val.Type().Field(i).Name])
 
 	// АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
-	return
+	return "http://127.0.0.1:8080/update", metrics
 }
 
 func (rm *RunMetrics) Set(ms runtime.MemStats) {

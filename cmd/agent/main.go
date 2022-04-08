@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,7 +18,7 @@ import (
 
 var (
 	pollInterval                     = 2 * time.Second
-	reportInterval                   = 10 * time.Second
+	reportInterval                   = 5 * time.Second
 	rm             *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
 )
 
@@ -96,20 +98,25 @@ func sendMetrics() {
 	// адрес сервиса (как его писать, расскажем в следующем уроке)
 	// rm.Lock()
 
-	ret := rm.Get()
+	endpoint, metricsForBody := rm.Get()
 	// logrus.Info(ret)
 	// return
-	for i := 0; i < len(ret); i++ {
+	for i := 0; i < len(metricsForBody); i++ {
 
 		client := &http.Client{}
-
-		request, err := http.NewRequest(http.MethodPost, ret[i], nil)
+		bodyBytes, err := json.Marshal(metricsForBody[i])
+		if err != nil {
+			logrus.Error(err)
+			continue
+		}
+		bodyIOReader := bytes.NewReader(bodyBytes)
+		request, err := http.NewRequest(http.MethodPost, endpoint, bodyIOReader)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		request.Header.Add("Content-Type", "text/plain")
+		request.Header.Add("Content-Type", "application/json")
 		// request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 		response, err := client.Do(request)
 		if err != nil {

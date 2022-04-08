@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/kmx0/devops/cmd/server/storage"
-	"github.com/sirupsen/logrus"
+	"github.com/kmx0/devops/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -65,7 +67,7 @@ func TestHandleUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			logrus.Info(tt.req)
+			// logrus.Info(tt.req)
 			w := httptest.NewRecorder()
 			// req, _ := http.NewRequest("GET", "/ping", nil)
 			request, _ := http.NewRequest(http.MethodPost, tt.req, nil)
@@ -217,3 +219,52 @@ func TestHandleUpdate(t *testing.T) {
 // 		})
 // 	}
 // }
+
+func TestHandleUpdateJSON(t *testing.T) {
+	SetRepository(storage.NewInMemory())
+	type wantStruct struct {
+		statusCode int
+		// counter     types.Counter
+	}
+	// var store repositories.Repository
+
+	router := SetupRouter()
+	tests := []struct {
+		name string
+		req  string
+		body types.Metrics
+		want wantStruct
+	}{
+		{
+			name: "updateJSON_empty",
+			req:  "/update/",
+			body: types.Metrics{},
+			want: wantStruct{
+				statusCode: 501,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// logrus.Info(tt.req)
+			w := httptest.NewRecorder()
+			// req, _ := http.NewRequest("GET", "/ping", nil)
+			// bodyReader := bytes.NewReader(
+			bodyBytes, err := json.Marshal(tt.body)
+			require.NoError(t, err)
+			bodyReader := bytes.NewReader(bodyBytes)
+			request, _ := http.NewRequest(http.MethodPost, tt.req, bodyReader)
+
+			router.ServeHTTP(w, request)
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			err = res.Body.Close()
+			require.NoError(t, err)
+			// mapresult, err := ioutil.ReadAll(res.Body)
+			// HandleCounter(tt.args.w, tt.args.r)
+		})
+	}
+}

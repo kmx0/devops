@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/cmd/server/storage"
 	"github.com/kmx0/devops/internal/repositories"
+	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,6 +26,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/update/gauge/", HandleWithoutID)
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
+	r.POST("/update/", HandleUpdateJSON)
 
 	r.GET("/", HandleAllValues)
 	r.GET("/value/:typem/:metric", HandleValue)
@@ -101,6 +104,65 @@ func HandleUpdate(c *gin.Context) {
 
 		err := store.Update(typeM, metric, value)
 		logrus.Info(err)
+		if err != nil {
+			switch {
+			// case strings.Contains(err.Error(), `not such metric`):
+			// 	c.Status(http.StatusBadRequest)
+			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
+				c.Status(http.StatusBadRequest)
+			default:
+				// logrus.Info(err)
+				c.Status(http.StatusInternalServerError)
+			}
+		}
+		// c.Status(http.StatusOK)
+	default:
+		c.Status(http.StatusNotImplemented)
+	}
+
+}
+
+func HandleUpdateJSON(c *gin.Context) {
+	logrus.SetReportCaller(true)
+	// logrus.Info(typeM, metric, value)
+
+	// var bodyBytes []byte
+	body := c.Request.Body
+
+	decoder := json.NewDecoder(body)
+	// var t test_struct
+	var metrics types.Metrics
+	err := decoder.Decode(&metrics)
+	if err != nil {
+		panic(err)
+	}
+	defer body.Close()
+
+	// logrus.Info(string(bodyBytes))
+	// json.Unmarshal(bodyBytes, &metrics)
+	// f := metrics.Value
+
+	// logrus.Infof("%+v", *f)
+	// logrus.Infof("%+v", metrics)
+	switch metrics.MType {
+	case "counter":
+		err := store.UpdateJSON(metrics)
+		if err != nil {
+			logrus.Info(err)
+			switch {
+			case strings.Contains(err.Error(), `strconv.ParseInt: parsing`):
+				c.Status(http.StatusBadRequest)
+			default:
+				c.Status(http.StatusInternalServerError)
+			}
+
+			// logrus.Error(err)
+		}
+		// c.Status(http.StatusOK)
+	case "gauge":
+
+		err := store.UpdateJSON(metrics)
+		// logrus.Info(err)
 		if err != nil {
 			switch {
 			// case strings.Contains(err.Error(), `not such metric`):
