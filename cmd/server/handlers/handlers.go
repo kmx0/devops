@@ -27,6 +27,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
 	r.POST("/update/", HandleUpdateJSON)
+	r.POST("/value/", HandleValueJSON)
 
 	r.GET("/", HandleAllValues)
 	r.GET("/value/:typem/:metric", HandleValue)
@@ -64,6 +65,51 @@ func HandleValue(c *gin.Context) {
 			return
 		}
 		c.String(http.StatusOK, value.String())
+		return
+	default:
+		c.Status(http.StatusNotFound)
+
+		return
+
+	}
+	// c.Status(http.StatusNotFound)
+	// c.String(http)
+}
+
+func HandleValueJSON(c *gin.Context) {
+	logrus.SetReportCaller(true)
+	// logrus.Info(typeM, metric, value)
+
+	// var bodyBytes []byte
+	body := c.Request.Body
+
+	decoder := json.NewDecoder(body)
+	// var t test_struct
+	var metrics types.Metrics
+	err := decoder.Decode(&metrics)
+	if err != nil {
+		c.Status(http.StatusNotFound)
+	}
+	// c.Request.Bodyjj
+	logrus.Info(metrics)
+	switch metrics.MType {
+	case "counter":
+		value, err := store.GetCounterJSON(metrics)
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusOK, value)
+		// c.String(http.StatusOK, value.String())
+		return
+	case "gauge":
+		value, err := store.GetGaugeJSON(metrics)
+		logrus.Info(err)
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusOK, value)
 		return
 	default:
 		c.Status(http.StatusNotFound)

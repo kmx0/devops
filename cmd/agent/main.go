@@ -18,7 +18,7 @@ import (
 
 var (
 	pollInterval                     = 2 * time.Second
-	reportInterval                   = 5 * time.Second
+	reportInterval                   = 10 * time.Second
 	rm             *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
 )
 

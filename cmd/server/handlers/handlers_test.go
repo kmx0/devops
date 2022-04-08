@@ -268,3 +268,56 @@ func TestHandleUpdateJSON(t *testing.T) {
 		})
 	}
 }
+
+
+func TestHandleValueJSON(t *testing.T) {
+	SetRepository(storage.NewInMemory())
+	type wantStruct struct {
+		statusCode int
+		// counter     types.Counter
+	}
+	// var store repositories.Repository
+
+	router := SetupRouter()
+	tests := []struct {
+		name string
+		req  string
+		body types.Metrics
+		want wantStruct
+	}{
+		{
+			name: "valueJSON_POST_request_1",
+			req:  "/value/",
+			body: types.Metrics{
+				ID: "PollCount",
+				MType: "counter",
+			},
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// logrus.Info(tt.req)
+			w := httptest.NewRecorder()
+			// req, _ := http.NewRequest("GET", "/ping", nil)
+			// bodyReader := bytes.NewReader(
+			bodyBytes, err := json.Marshal(tt.body)
+			require.NoError(t, err)
+			bodyReader := bytes.NewReader(bodyBytes)
+			request, _ := http.NewRequest(http.MethodPost, tt.req, bodyReader)
+
+			router.ServeHTTP(w, request)
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			err = res.Body.Close()
+			require.NoError(t, err)
+			// mapresult, err := ioutil.ReadAll(res.Body)
+			// HandleCounter(tt.args.w, tt.args.r)
+		})
+	}
+}
