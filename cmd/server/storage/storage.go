@@ -68,6 +68,7 @@ func (s *InMemory) UpdateJSON(metrics types.Metrics) error {
 		// }
 		logrus.Warn(*(metrics).Delta)
 		s.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
+		logrus.Infof("%+v", s.MapCounter)
 	case "gauge":
 		if _, ok := s.MetricNames[metrics.ID]; !ok {
 			// return errors.New("not such metric")
@@ -80,6 +81,7 @@ func (s *InMemory) UpdateJSON(metrics types.Metrics) error {
 		// 	return err
 		// }
 		s.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
+		logrus.Infof("%+v", s.MapGauge)
 	}
 	return nil
 }

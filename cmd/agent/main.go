@@ -27,7 +27,7 @@ func main() {
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
 	logrus.SetReportCaller(true)
-	logrus.Info(m.Alloc)
+	// logrus.Info(m.Alloc)
 	rm.Set(m)
 	// return
 	signalChanel := make(chan os.Signal, 1)
@@ -76,7 +76,7 @@ func main() {
 		for {
 			<-tickerSendMetrics.C
 			// rm.ULock()
-			sendMetrics()
+			sendMetricsJSON()
 		}
 	}()
 
@@ -93,7 +93,7 @@ func main() {
 
 }
 
-func sendMetrics() {
+func sendMetricsJSON() {
 	// в формате: http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
 	// адрес сервиса (как его писать, расскажем в следующем уроке)
 	// rm.Lock()
@@ -137,3 +137,43 @@ func sendMetrics() {
 		fmt.Println(string(body))
 	}
 }
+
+// func sendMetrics() {
+// 	// в формате: http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
+// 	// адрес сервиса (как его писать, расскажем в следующем уроке)
+// 	// rm.Lock()
+
+// 	ret := rm.Get()
+// 	// logrus.Info(ret)
+// 	// return
+// 	for i := 0; i < len(ret); i++ {
+
+// 		client := &http.Client{}
+
+// 		request, err := http.NewRequest(http.MethodPost, ret[i], nil)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			os.Exit(1)
+// 		}
+
+// 		request.Header.Add("Content-Type", "text/plain")
+// 		// request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+// 		response, err := client.Do(request)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			os.Exit(1)
+// 		}
+// 		// печатаем код ответа
+// 		fmt.Println("Статус-код ", response.Status)
+// 		defer response.Body.Close()
+// 		// читаем поток из тела ответа
+
+// 		body, err := io.ReadAll(response.Body)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			os.Exit(1)
+// 		}
+// 		// и печатаем его
+// 		fmt.Println(string(body))
+// 	}
+// }
