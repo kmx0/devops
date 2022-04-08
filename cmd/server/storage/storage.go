@@ -27,10 +27,11 @@ func (s *InMemory) GetGauge(metricType string, metric string) (types.Gauge, erro
 	return s.MapGauge[metric], nil
 }
 func (s *InMemory) GetGaugeJSON(metrics types.Metrics) (types.Metrics, error) {
-	if _, ok := s.MapCounter[metrics.ID]; !ok {
+	logrus.Info(metrics.ID)
+	if _, ok := s.MapGauge[metrics.ID]; !ok {
 		return metrics, errors.New("not such metric")
 	}
-	val := float64(s.MapCounter[metrics.ID])
+	val := float64(s.MapGauge[metrics.ID])
 
 	metrics.Value = &val
 	// return s.MapCounter[metric], nil
@@ -43,6 +44,7 @@ func (s *InMemory) GetCounter(metricType string, metric string) (types.Counter, 
 	return s.MapCounter[metric], nil
 }
 func (s *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error) {
+	logrus.Info(metrics.ID)
 	if _, ok := s.MapCounter[metrics.ID]; !ok {
 		return metrics, errors.New("not such metric")
 	}
