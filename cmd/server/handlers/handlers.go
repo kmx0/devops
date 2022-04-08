@@ -27,6 +27,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
 	r.POST("/update/", HandleUpdateJSON)
+	r.POST("/update", HandleWithoutID)
 	r.POST("/value/", HandleValueJSON)
 
 	r.GET("/", HandleAllValues)
