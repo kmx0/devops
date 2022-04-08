@@ -85,11 +85,10 @@ func (rm *RunMetrics) Get() (endpoint string, metricsForBody []Metrics) {
 			vc, ok := v.(Counter)
 			if !ok {
 
-				panic(errors.New("cannot convert interface to int64"))
+				logrus.Error(errors.New("cannot convert interface to int64"))
 			}
 			vi64 := int64(vc)
-			logrus.Errorf("%+v", v)
-			logrus.Errorf("%+v", vi64)
+
 			metrics[i] = Metrics{
 				ID:    k,
 				MType: strings.ToLower(reflect.TypeOf(v).Name()),
@@ -100,7 +99,7 @@ func (rm *RunMetrics) Get() (endpoint string, metricsForBody []Metrics) {
 			vg, ok := v.(Gauge)
 			if !ok {
 
-				panic(errors.New("cannot convert interface to float64"))
+				logrus.Error(errors.New("cannot convert interface to float64"))
 			}
 			vf64 := float64(vg)
 			// logrus.Errorf("%+v", v)

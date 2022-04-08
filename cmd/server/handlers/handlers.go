@@ -180,7 +180,9 @@ func HandleUpdateJSON(c *gin.Context) {
 	var metrics types.Metrics
 	err := decoder.Decode(&metrics)
 	if err != nil {
-		panic(err)
+		logrus.Error(err)
+		// panic(err)
+		c.Status(http.StatusInternalServerError)
 	}
 	defer body.Close()
 

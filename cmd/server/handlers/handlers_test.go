@@ -293,7 +293,7 @@ func TestHandleValueJSON(t *testing.T) {
 				MType: "counter",
 			},
 			want: wantStruct{
-				statusCode: 200,
+				statusCode: 404,
 			},
 		},
 	}
