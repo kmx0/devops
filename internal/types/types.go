@@ -45,7 +45,7 @@ type (
 		StackInuse    Gauge
 		StackSys      Gauge
 		Sys           Gauge
-		TotalAlloc    Gauge
+		TotalAllo    Gauge
 		PollCount     Counter
 		RandomValue   Gauge
 		sync.RWMutex

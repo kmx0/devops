@@ -59,36 +59,44 @@ func (s *InMemory) UpdateJSON(metrics types.Metrics) error {
 
 	switch metrics.MType {
 	case "counter":
-		if _, ok := s.MetricNames[metrics.ID]; !ok {
-			if metrics.Delta == nil {
-				return errors.New("recieved nil pointer on Delta")
-			}
-			logrus.Info("Adding new metric ", metrics.ID, " Counter")
-		}
-		logrus.Info(metrics.Delta == nil)
+		// if _, ok := s.MetricNames[metrics.ID]; !ok {
+		// 	logrus.Info("Adding new metric ", metrics.ID, " Counter")
+		// 	s.MetricNames[metrics.ID] = types.Counter(*(metrics).Delta)
+		// }
+		// logrus.Info(metrics.Delta == nil)
 		// c := metrics.Delta
+		if metrics.Delta == nil {
+			return errors.New("recieved nil pointer on Delta")
+		}
 
 		// valueInt64, err := strconv.ParseInt(*c, 10, 64)
 		// if err != nil {
 		// 	return err
 		// }
 		// logrus.Warn(*(metrics).Delta)
+
 		s.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
 		logrus.Infof("%+v", s.MapCounter)
 	case "gauge":
-		if _, ok := s.MetricNames[metrics.ID]; !ok {
-			if metrics.Value == nil {
-				return errors.New("recieved nil pointer on Value")
-			}
-			// return errors.New("not such metric")
-			logrus.Info("Adding new metric ", metrics.ID, " Gauge")
+		// if _, ok := s.MetricNames[metrics.ID]; !ok {
+		// 	if metrics.Value == nil {
+		// 		return errors.New("recieved nil pointer on Value")
+		// 	}
+		// 	// return errors.New("not such metric")
+		// 	logrus.Info("Adding new metric ", metrics.ID, " Gauge")
+		// 	logrus.Info(s.MetricNames[metrics.ID])
+		// 	logrus.Info(types.Gauge(*(metrics).Value))
 
-		}
+		// 	s.MetricNames[metrics.ID] = types.Gauge(*(metrics).Value)
+		// }
 
 		// valueFloat64, err := strconv.ParseFloat(value, 64)
 		// if err != nil {
 		// 	return err
 		// }
+		if metrics.Value == nil {
+			return errors.New("recieved nil pointer on Value")
+		}
 		s.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
 		logrus.Infof("%+v", s.MapGauge)
 	}
