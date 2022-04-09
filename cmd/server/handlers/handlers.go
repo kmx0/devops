@@ -121,7 +121,7 @@ func HandleValueJSON(c *gin.Context) {
 		c.JSON(http.StatusOK, value)
 		return
 	default:
-		c.Status(http.StatusNotFound)
+		c.Status(http.StatusBadRequest)
 
 		return
 
@@ -182,6 +182,7 @@ func HandleUpdateJSON(c *gin.Context) {
 	// logrus.Info(typeM, metric, value)
 
 	// var bodyBytes []byte
+	logrus.Info("UPDATEJSON!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
 	body := c.Request.Body
 
 	decoder := json.NewDecoder(body)
@@ -194,13 +195,14 @@ func HandleUpdateJSON(c *gin.Context) {
 		c.Status(http.StatusInternalServerError)
 	}
 	defer body.Close()
-
+	logrus.Info(metrics)
 	// logrus.Info(string(bodyBytes))
 	// json.Unmarshal(bodyBytes, &metrics)
 	// f := metrics.Value
 
 	// logrus.Infof("%+v", *f)
 	// logrus.Infof("%+v", metrics)
+	logrus.Info("UPDATE")
 	switch metrics.MType {
 	case "counter":
 		err := store.UpdateJSON(metrics)
