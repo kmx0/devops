@@ -46,8 +46,7 @@ func (s *InMemory) GetCounter(metricType string, metric string) (types.Counter, 
 func (s *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error) {
 	logrus.Info(metrics.ID)
 	if _, ok := s.MapCounter[metrics.ID]; !ok {
-		s.MapCounter[metrics.ID] = 0
-		// return metrics, errors.New("not such metric")
+		return metrics, errors.New("not such metric")
 	}
 	val := int64(s.MapCounter[metrics.ID])
 
