@@ -122,7 +122,8 @@ func sendMetricsJSON() {
 		if err != nil {
 			logrus.Error("Error on requesting")
 			logrus.Error(err)
-			os.Exit(1)
+			// os.Exit(1)
+			continue
 		}
 		// печатаем код ответа
 		fmt.Println("Статус-код ", response.Status)
@@ -131,8 +132,10 @@ func sendMetricsJSON() {
 
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			logrus.Error("Error on Reading body")
+			logrus.Error(err)
+			// os.Exit(1)
+			continue
 		}
 		// и печатаем его
 		fmt.Println(string(body))
