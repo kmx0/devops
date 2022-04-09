@@ -207,7 +207,7 @@ func HandleUpdateJSON(c *gin.Context) {
 		if err != nil {
 			logrus.Info(err)
 			switch {
-			case strings.Contains(err.Error(), `strconv.ParseInt: parsing`):
+			case strings.Contains(err.Error(), `recieved nil pointer on Delta`):
 				c.Status(http.StatusBadRequest)
 			default:
 				c.Status(http.StatusInternalServerError)
@@ -224,7 +224,7 @@ func HandleUpdateJSON(c *gin.Context) {
 			switch {
 			// case strings.Contains(err.Error(), `not such metric`):
 			// 	c.Status(http.StatusBadRequest)
-			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
+			case strings.Contains(err.Error(), `recieved nil pointer on Value`):
 				c.Status(http.StatusBadRequest)
 			default:
 				// logrus.Info(err)
