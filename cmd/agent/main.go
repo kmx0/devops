@@ -99,7 +99,7 @@ func sendMetricsJSON() {
 	// rm.Lock()
 
 	endpoint, metricsForBody := rm.Get()
-	// logrus.Info(ret)
+	logrus.Info(endpoint, metricsForBody)
 	// return
 	for i := 0; i < len(metricsForBody); i++ {
 
