@@ -120,7 +120,8 @@ func sendMetricsJSON() {
 		// request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 		response, err := client.Do(request)
 		if err != nil {
-			fmt.Println(err)
+			logrus.Error("Error on requesting")
+			logrus.Error(err)
 			os.Exit(1)
 		}
 		// печатаем код ответа
