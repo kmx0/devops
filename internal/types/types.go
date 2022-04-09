@@ -45,7 +45,7 @@ type (
 		StackInuse    Gauge
 		StackSys      Gauge
 		Sys           Gauge
-		TotalAllo    Gauge
+		TotalAllo     Gauge
 		PollCount     Counter
 		RandomValue   Gauge
 		sync.RWMutex
@@ -156,6 +156,5 @@ func (rm *RunMetrics) Set(ms runtime.MemStats) {
 	}
 	rm.MapMetrics["PollCount"] = (rm.MapMetrics["PollCount"].(Counter)) + Counter(1)
 	rand.Seed(time.Now().UnixNano())
-	rm.RandomValue = Gauge(rand.Float64())
-
+	rm.MapMetrics["RandomValue"] = Gauge(rand.Float64())
 }
