@@ -3,6 +3,8 @@ module github.com/kmx0/devops
 go 1.17
 
 require (
+	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/caarlos0/env/v6 v6.9.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.4.0

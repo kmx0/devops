@@ -12,18 +12,33 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
 
+type Config struct {
+	Address        string `env:"ADDRESS"`
+	ReportInterval int    `env:"REPORT_INTERVAL"`
+	PollInterval   int    `env:"POLL_INTERVAL"`
+}
+
 var (
-	pollInterval                     = 2 * time.Second
-	reportInterval                   = 10 * time.Second
-	rm             *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
+	rm *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
 )
 
 func main() {
 	// rm := types.RunMetrics{}
+	var cfg Config
+	// допишите код здесь
+	err := env.Parse(&cfg)
+	if err != nil {
+		cfg.Address = "127.0.0.1:8080"
+		cfg.ReportInterval = 10
+		cfg.PollInterval = 2
+		logrus.Infof("Using default values for cfg: %+v", cfg)
+		logrus.Error(err)
+	}
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
 	logrus.SetReportCaller(true)
@@ -62,7 +77,7 @@ func main() {
 		}
 	}()
 
-	tickerFill := time.NewTicker(pollInterval)
+	tickerFill := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
 	go func() {
 		for {
 			<-tickerFill.C
@@ -71,12 +86,14 @@ func main() {
 		}
 	}()
 
-	tickerSendMetrics := time.NewTicker(reportInterval)
+	tickerSendMetrics := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
 	go func() {
 		for {
 			<-tickerSendMetrics.C
 			// rm.ULock()
+			now := time.Now()
 			sendMetricsJSON()
+			fmt.Println(time.Since(now))
 		}
 	}()
 
@@ -101,9 +118,9 @@ func sendMetricsJSON() {
 	endpoint, metricsForBody := rm.Get()
 	logrus.Info(endpoint, metricsForBody)
 	// return
+	client := &http.Client{}
 	for i := 0; i < len(metricsForBody); i++ {
 
-		client := &http.Client{}
 		bodyBytes, err := json.Marshal(metricsForBody[i])
 		if err != nil {
 			logrus.Error(err)
