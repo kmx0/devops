@@ -4,9 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/caarlos0/env"
 	"github.com/kmx0/devops/cmd/server/handlers"
-	"github.com/sirupsen/logrus"
+	"github.com/kmx0/devops/internal/config"
 )
 
 type Config struct {
@@ -15,14 +14,8 @@ type Config struct {
 
 func main() {
 
-	var cfg Config
-	// допишите код здесь
-	err := env.Parse(&cfg)
-	if err != nil {
-		cfg.Address = "127.0.0.1:8080"
-		logrus.Infof("Using default values for cfg: %+v", cfg)
-		logrus.Error(err)
-	}
+	cfg := config.LoadConfig("server")
+
 	r := handlers.SetupRouter()
 
 	log.Fatal(http.ListenAndServe(cfg.Address, r))

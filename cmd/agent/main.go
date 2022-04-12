@@ -12,16 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/caarlos0/env/v6"
+	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
-
-type Config struct {
-	Address        string `env:"ADDRESS"`
-	ReportInterval int    `env:"REPORT_INTERVAL"`
-	PollInterval   int    `env:"POLL_INTERVAL"`
-}
 
 var (
 	rm *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
@@ -29,16 +23,7 @@ var (
 
 func main() {
 	// rm := types.RunMetrics{}
-	var cfg Config
-	// допишите код здесь
-	err := env.Parse(&cfg)
-	if err != nil {
-		cfg.Address = "127.0.0.1:8080"
-		cfg.ReportInterval = 10
-		cfg.PollInterval = 2
-		logrus.Infof("Using default values for cfg: %+v", cfg)
-		logrus.Error(err)
-	}
+	cfg := config.LoadConfig("agent")
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
 	logrus.SetReportCaller(true)
