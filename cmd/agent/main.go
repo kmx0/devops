@@ -77,7 +77,7 @@ func main() {
 			<-tickerSendMetrics.C
 			// rm.ULock()
 			now := time.Now()
-			sendMetricsJSON()
+			sendMetricsJSON(cfg.Address)
 			fmt.Println(time.Since(now))
 		}
 	}()
@@ -95,12 +95,13 @@ func main() {
 
 }
 
-func sendMetricsJSON() {
+func sendMetricsJSON(address string) {
 	// в формате: http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>;
 	// адрес сервиса (как его писать, расскажем в следующем уроке)
 	// rm.Lock()
 
-	endpoint, metricsForBody := rm.Get()
+	metricsForBody := rm.Get()
+	endpoint := fmt.Sprintf("http://%s/update/", address)
 	logrus.Info(endpoint, metricsForBody)
 	// return
 	client := &http.Client{}

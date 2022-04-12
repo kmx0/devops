@@ -66,7 +66,7 @@ func (c Counter) String() string {
 	return fmt.Sprintf("%d", c)
 }
 
-func (rm *RunMetrics) Get() (endpoint string, metricsForBody []Metrics) {
+func (rm *RunMetrics) Get() (metricsForBody []Metrics) {
 
 	metrics := make([]Metrics, len(rm.MapMetrics))
 	rm.Lock()
@@ -117,7 +117,7 @@ func (rm *RunMetrics) Get() (endpoint string, metricsForBody []Metrics) {
 	// endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(val.Type().Field(i).Type.Name()), val.Type().Field(i).Name, rmMap[val.Type().Field(i).Name])
 
 	// АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
-	return "http://127.0.0.1:8080/update/", metrics
+	return metrics
 }
 
 func (rm *RunMetrics) Set(ms runtime.MemStats) {
