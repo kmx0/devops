@@ -9,9 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Config struct {
-	Address string `env:"ADDRESS"`
-}
+// type Config struct {
+// 	Address string `env:"ADDRESS"`
+// }
 
 func main() {
 	logrus.SetReportCaller(true)
