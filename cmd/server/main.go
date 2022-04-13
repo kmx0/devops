@@ -6,6 +6,7 @@ import (
 
 	"github.com/kmx0/devops/cmd/server/handlers"
 	"github.com/kmx0/devops/internal/config"
+	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -13,9 +14,10 @@ type Config struct {
 }
 
 func main() {
+	logrus.SetReportCaller(true)
 
-	cfg := config.LoadConfig("server")
-
+	cfg := config.LoadConfig()
+	logrus.Infof("CFG for SERVER  %+v", cfg)
 	r := handlers.SetupRouter()
 
 	log.Fatal(http.ListenAndServe(cfg.Address, r))

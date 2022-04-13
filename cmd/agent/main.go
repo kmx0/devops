@@ -23,10 +23,11 @@ var (
 
 func main() {
 	// rm := types.RunMetrics{}
-	cfg := config.LoadConfig("agent")
+	logrus.SetReportCaller(true)
+	cfg := config.LoadConfig()
+	logrus.Infof("CFG for AGENT %+v", cfg)
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
-	logrus.SetReportCaller(true)
 	// logrus.Info(m.Alloc)
 	rm.Set(m)
 	// return
