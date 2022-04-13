@@ -63,7 +63,7 @@ func main() {
 		}
 	}()
 
-	tickerFill := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+	tickerFill := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for {
 			<-tickerFill.C
@@ -72,7 +72,7 @@ func main() {
 		}
 	}()
 
-	tickerSendMetrics := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
+	tickerSendMetrics := time.NewTicker(cfg.ReportInterval)
 	go func() {
 		for {
 			<-tickerSendMetrics.C

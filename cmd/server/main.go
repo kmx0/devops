@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/kmx0/devops/cmd/server/handlers"
@@ -20,7 +19,7 @@ func main() {
 	logrus.Infof("CFG for SERVER  %+v", cfg)
 	r := handlers.SetupRouter()
 
-	log.Fatal(http.ListenAndServe(cfg.Address, r))
+	logrus.Fatal(http.ListenAndServe(cfg.Address, r))
 }
 
 func Handl(w http.ResponseWriter, r *http.Request) {
