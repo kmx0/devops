@@ -18,8 +18,11 @@ func SetRepository(s repositories.Repository) {
 	store = s
 }
 
-func SetupRouter() *gin.Engine {
-	store := storage.NewInMemory()
+func SetupRouter(filename string) *gin.Engine {
+	store, err := storage.NewInMemory(filename)
+	if err != nil {
+		logrus.Error(err)
+	}
 	SetRepository(store)
 
 	r := gin.Default()

@@ -101,7 +101,7 @@ func sendMetricsJSON(address string) {
 	// адрес сервиса (как его писать, расскажем в следующем уроке)
 	// rm.Lock()
 
-	metricsForBody := rm.Get()
+	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", address)
 	logrus.Info(endpoint, metricsForBody)
 	// return

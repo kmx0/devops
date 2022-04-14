@@ -14,14 +14,15 @@ import (
 )
 
 func TestHandleUpdate(t *testing.T) {
-	SetRepository(storage.NewInMemory())
+	s, _ := storage.NewInMemory("")
+	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
 		// counter     types.Counter
 	}
 	// var store repositories.Repository
 
-	router := SetupRouter()
+	router := SetupRouter("")
 	tests := []struct {
 		name string
 		req  string
@@ -221,14 +222,15 @@ func TestHandleUpdate(t *testing.T) {
 // }
 
 func TestHandleUpdateJSON(t *testing.T) {
-	SetRepository(storage.NewInMemory())
+	s, _:= storage.NewInMemory("")
+	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
 		// counter     types.Counter
 	}
 	// var store repositories.Repository
 
-	router := SetupRouter()
+	router := SetupRouter("")
 	tests := []struct {
 		name string
 		req  string
@@ -269,16 +271,16 @@ func TestHandleUpdateJSON(t *testing.T) {
 	}
 }
 
-
 func TestHandleValueJSON(t *testing.T) {
-	SetRepository(storage.NewInMemory())
+	s, _:= storage.NewInMemory("")
+	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
 		// counter     types.Counter
 	}
 	// var store repositories.Repository
 
-	router := SetupRouter()
+	router := SetupRouter("")
 	tests := []struct {
 		name string
 		req  string
@@ -289,7 +291,7 @@ func TestHandleValueJSON(t *testing.T) {
 			name: "valueJSON_POST_request_1",
 			req:  "/value/",
 			body: types.Metrics{
-				ID: "PollCount",
+				ID:    "PollCount",
 				MType: "counter",
 			},
 			want: wantStruct{

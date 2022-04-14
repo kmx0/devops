@@ -19,7 +19,7 @@ type (
 	Counter int64
 
 	RunMetrics struct {
-		Alloc         Gauge
+		Alloc         Gauge 
 		BuckHashSys   Gauge
 		Frees         Gauge
 		GCCPUFraction Gauge
@@ -66,7 +66,7 @@ func (c Counter) String() string {
 	return fmt.Sprintf("%d", c)
 }
 
-func (rm *RunMetrics) Get() (metricsForBody []Metrics) {
+func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 
 	metrics := make([]Metrics, len(rm.MapMetrics))
 	rm.Lock()
