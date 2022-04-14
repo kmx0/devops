@@ -69,7 +69,7 @@ func (sm *InMemory) UpdateJSON(metrics types.Metrics) error {
 		}
 		sm.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
 		logrus.Infof("%+v", sm.MapCounter)
-		
+
 	case "gauge":
 		if metrics.Value == nil {
 			return errors.New("recieved nil pointer on Value")
@@ -109,7 +109,7 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 }
 
 func (sm *InMemory) SaveToDisk(cfg config.Config) {
-	file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE, 0777)
+	file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
 		logrus.Error(err)
 		return
@@ -117,9 +117,9 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	encoder.Encode(&sm.ArrayJSONMetrics)
 	sm.ConvertMapsToMetrisc()
-	logrus.Info()
+	encoder.Encode(&sm.ArrayJSONMetrics)
+	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)

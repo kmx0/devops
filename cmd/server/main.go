@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/kmx0/devops/cmd/server/handlers"
@@ -15,15 +19,46 @@ import (
 
 func main() {
 	logrus.SetReportCaller(true)
+	signalChanel := make(chan os.Signal, 1)
+	signal.Notify(signalChanel,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
 
+	exitChan := make(chan int)
+
+	go func() {
+		for {
+			s := <-signalChanel
+			switch s {
+			// kill -SIGHUP XXXX [XXXX - идентификатор процесса для программы]
+			case syscall.SIGINT:
+				fmt.Println("Signal interrupt triggered.")
+				exitChan <- 0
+				// kill -SIGTERM XXXX [XXXX - идентификатор процесса для программы]
+			case syscall.SIGTERM:
+				fmt.Println("Signal terminte triggered.")
+				exitChan <- 0
+
+				// kill -SIGQUIT XXXX [XXXX - идентификатор процесса для программы]
+			case syscall.SIGQUIT:
+				fmt.Println("Signal quit triggered.")
+				exitChan <- 0
+
+			default:
+				fmt.Println("Unknown signal.")
+				exitChan <- 1
+			}
+		}
+	}()
 	cfg := config.LoadConfig()
 	logrus.Infof("CFG for SERVER  %+v", cfg)
 	r, sm := handlers.SetupRouter(cfg)
 	if cfg.Restore {
 		sm.RestoreFromDisk(cfg)
 	}
+	tickerStore := time.NewTicker(cfg.StoreInterval)
 	if cfg.StoreInterval != 0 {
-		tickerStore := time.NewTicker(cfg.StoreInterval)
 
 		go func() {
 			for {
@@ -40,8 +75,19 @@ func main() {
 			}
 		}()
 	}
-	logrus.Fatal(http.ListenAndServe(cfg.Address, r))
+	go http.ListenAndServe(cfg.Address, r)
+	logrus.Info("EFDVfdvfvfvfewv!!!!!!!!!!!!!!!!!!!!1")
+	exitCode := <-exitChan
+	//stoping ticker
+	logrus.Warn("Stopping tickerStore")
 
+	tickerStore.Stop()
+
+	logrus.Warn("Saving last data")
+	sm.SaveToDisk(cfg)
+
+	logrus.Warn("Exiting with code ", exitCode)
+	os.Exit(exitCode)
 }
 
 func Handl(w http.ResponseWriter, r *http.Request) {
