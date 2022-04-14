@@ -57,6 +57,7 @@ func main() {
 	if cfg.Restore {
 		sm.RestoreFromDisk(cfg)
 	}
+	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 	tickerStore := time.NewTicker(cfg.StoreInterval)
 	if cfg.StoreInterval != 0 {
 

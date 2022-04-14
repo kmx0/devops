@@ -119,7 +119,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	encoder := json.NewEncoder(file)
 	sm.ConvertMapsToMetrisc()
 	encoder.Encode(&sm.ArrayJSONMetrics)
-	logrus.Infof("%+v", sm.ArrayJSONMetrics)
+	logrus.Infof("%+v", sm.ArrayJSONMetrics[0])
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
@@ -173,6 +173,7 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 		i++
 	}
 	copy(sm.ArrayJSONMetrics, metrics)
+	
 	// return metrics
 }
 
