@@ -150,13 +150,13 @@ func NewInMemory(cfg config.Config) (*InMemory, error) {
 func (sm *InMemory) ConvertMapsToMetrisc() {
 	sm.Lock()
 	defer sm.Unlock()
-	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
+	// metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
 	// val := reflect.ValueOf(rm)
 	i := 0
 	for k, v := range sm.MapCounter {
 		vi64 := int64(v)
 
-		metrics[i] = types.Metrics{
+		sm.ArrayJSONMetrics[i] = types.Metrics{
 			ID:    k,
 			MType: strings.ToLower(reflect.TypeOf(v).Name()),
 			Delta: &vi64,
@@ -167,15 +167,15 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 	}
 	for k, v := range sm.MapGauge {
 		vf64 := float64(v)
-		metrics[i] = types.Metrics{
+		sm.ArrayJSONMetrics[i] = types.Metrics{
 			ID:    k,
 			MType: strings.ToLower(reflect.TypeOf(v).Name()),
 			Value: &vf64,
 		}
 		i++
 	}
-	logrus.Infof("%+v", metrics)
-	copy(sm.ArrayJSONMetrics, metrics)
+	// logrus.Infof("%+v", metrics)
+	// copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 	// return metrics
 }
