@@ -117,6 +117,8 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 
 	encoder := json.NewEncoder(file)
 	sm.ConvertMapsToMetrisc()
+	logrus.Info(sm.MapCounter)
+	logrus.Info(sm.MapGauge)
 	encoder.Encode(&sm.ArrayJSONMetrics)
 	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 }
