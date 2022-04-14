@@ -1,6 +1,9 @@
 package repositories
 
-import "github.com/kmx0/devops/internal/types"
+import (
+	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/types"
+)
 
 type Repository interface {
 	Update(metric, name, value string) error
@@ -10,4 +13,6 @@ type Repository interface {
 	GetCounter(metric, name string) (types.Counter, error)
 	GetCounterJSON(types.Metrics) (types.Metrics, error)
 	GetCurrentMetrics() (map[string]types.Gauge, map[string]types.Counter, error)
+	RestoreFromDisk(cfg config.Config)
+	SaveToDisk(cfg config.Config)
 }

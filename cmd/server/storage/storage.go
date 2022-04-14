@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
@@ -18,16 +19,6 @@ type InMemory struct {
 	MapGauge         map[string]types.Gauge
 	MetricNames      map[string]interface{}
 	ArrayJSONMetrics []types.Metrics
-	file             *os.File
-	encoder          *json.Encoder
-	sync.RWMutex
-}
-type InDisk struct {
-	MapCounter  map[string]types.Counter
-	MapGauge    map[string]types.Gauge
-	MetricNames map[string]interface{}
-	file        *os.File
-	decoder     *json.Decoder
 	sync.RWMutex
 }
 
@@ -78,12 +69,13 @@ func (sm *InMemory) UpdateJSON(metrics types.Metrics) error {
 		}
 		sm.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
 		logrus.Infof("%+v", sm.MapCounter)
+		
 	case "gauge":
 		if metrics.Value == nil {
 			return errors.New("recieved nil pointer on Value")
 		}
 		sm.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
-		logrus.Infof("%+v", sm.MapGauge)
+		// logrus.Infof("%+v", sm.MapGauge)
 	}
 	return nil
 }
@@ -116,49 +108,47 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 	return nil
 }
 
-func (sm *InMemory) WriteMetrics(metricsP *[]types.Metrics) error {
-	err := sm.encoder.Encode(metricsP)
+func (sm *InMemory) SaveToDisk(cfg config.Config) {
+	file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE, 0777)
 	if err != nil {
-		return err
+		logrus.Error(err)
+		return
 	}
-	return nil
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.Encode(&sm.ArrayJSONMetrics)
+	sm.ConvertMapsToMetrisc()
+	logrus.Info()
 }
-
-func NewInMemory(filename string) (*InMemory, error) {
-	rm := types.RunMetrics{}
-	// val := reflect.ValueOf(rm)
-	// metricNames := make(map[string]struct{}, val.NumField())
-	// // val := reflect.ValueOf(rm)
-	// for i := 0; i < val.NumField(); i++ {
-	// 	metricNames[val.Type().Field(i).Name] = struct{}{}
-	// }
-	if filename == "" {
-		return &InMemory{
-			MapCounter:  make(map[string]types.Counter),
-			MapGauge:    make(map[string]types.Gauge),
-			MetricNames: rm.MapMetrics,
-		}, nil
-	}
-
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
+	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
 	if err != nil {
-		return nil, err
+		logrus.Error(err)
+		return
 	}
+	defer file.Close()
+	decoder := json.NewDecoder(file)
 
+	err = decoder.Decode(&sm.ArrayJSONMetrics)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	sm.ConvertMetriscToMaps()
+}
+func NewInMemory(cfg config.Config) (*InMemory, error) {
+	rm := types.RunMetrics{}
 	return &InMemory{
 		MapCounter:  make(map[string]types.Counter),
 		MapGauge:    make(map[string]types.Gauge),
 		MetricNames: rm.MapMetrics,
-		file:        file,
-		encoder:     json.NewEncoder(file),
 	}, nil
-
 }
-
-func ConvertMapsToMetrisc(sm *InMemory) []types.Metrics {
-	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
+func (sm *InMemory) ConvertMapsToMetrisc() {
 	sm.Lock()
 	defer sm.Unlock()
+	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
 	// val := reflect.ValueOf(rm)
 	i := 0
 	for k, v := range sm.MapCounter {
@@ -182,44 +172,23 @@ func ConvertMapsToMetrisc(sm *InMemory) []types.Metrics {
 		}
 		i++
 	}
-	return metrics
+	copy(sm.ArrayJSONMetrics, metrics)
+	// return metrics
 }
 
-func (sm *InMemory) Close() error {
-	return sm.file.Close()
-}
+func (sm *InMemory) ConvertMetriscToMaps() {
+	sm.Lock()
+	defer sm.Unlock()
+	for _, v := range sm.ArrayJSONMetrics {
 
-func (sd *InDisk) ReadMetrics() (*[]types.Metrics, error) {
-	metrics := []types.Metrics{}
-	err := sd.decoder.Decode(&metrics)
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
+		logrus.Info(v)
+
+		switch v.MType {
+		case "counter":
+			sm.MapCounter[v.ID] = types.Counter(*v.Delta)
+		case "gauge":
+			sm.MapGauge[v.ID] = types.Gauge(*v.Value)
+		}
+
 	}
-	return &metrics, nil
-}
-func (sd *InDisk) Close() error {
-	return sd.file.Close()
-}
-
-func NewInDisk(filename string) (*InDisk, error) {
-	rm := types.RunMetrics{}
-	// val := reflect.ValueOf(rm)
-	// metricNames := make(map[string]struct{}, val.NumField())
-	// // val := reflect.ValueOf(rm)
-	// for i := 0; i < val.NumField(); i++ {
-	// 	metricNames[val.Type().Field(i).Name] = struct{}{}
-	// }
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
-	if err != nil {
-		return nil, err
-	}
-
-	return &InDisk{
-		MapCounter:  make(map[string]types.Counter),
-		MapGauge:    make(map[string]types.Gauge),
-		MetricNames: rm.MapMetrics,
-		file:        file,
-		decoder:     json.NewDecoder(file),
-	}, nil
 }

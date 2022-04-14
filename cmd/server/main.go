@@ -18,20 +18,30 @@ func main() {
 
 	cfg := config.LoadConfig()
 	logrus.Infof("CFG for SERVER  %+v", cfg)
-	r := handlers.SetupRouter(cfg.StoreFile)
+	r, sm := handlers.SetupRouter(cfg)
+	if cfg.Restore {
+		sm.RestoreFromDisk(cfg)
+	}
+	if cfg.StoreInterval != 0 {
+		tickerStore := time.NewTicker(cfg.StoreInterval)
 
-	tickerStore := time.NewTicker(cfg.StoreInterval)
-	go func() {
-		for {
-			<-tickerStore.C
-			// runtime.ReadMemStats(&m)
-			// rm.Set(m)
+		go func() {
+			for {
+				<-tickerStore.C
+				// runtime.ReadMemStats(&m)
+				// rm.Set(m)
+				// metrics := []types.Metrics{}
 
-			logrus.Infof("Saving data to file %s", cfg.StoreFile)
-		}
-	}()
-
+				// metrics := storage.ConvertMapsToMetrisc(sm)
+				// sm.WriteMetrics(&metrics)
+				// sm.Close()
+				sm.SaveToDisk(cfg)
+				logrus.Infof("Saving data to file %s", cfg.StoreFile)
+			}
+		}()
+	}
 	logrus.Fatal(http.ListenAndServe(cfg.Address, r))
+
 }
 
 func Handl(w http.ResponseWriter, r *http.Request) {

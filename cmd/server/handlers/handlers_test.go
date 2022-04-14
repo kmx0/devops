@@ -8,13 +8,14 @@ import (
 	"testing"
 
 	"github.com/kmx0/devops/cmd/server/storage"
+	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHandleUpdate(t *testing.T) {
-	s, _ := storage.NewInMemory("")
+	s, _ := storage.NewInMemory(config.Config{})
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
@@ -22,7 +23,7 @@ func TestHandleUpdate(t *testing.T) {
 	}
 	// var store repositories.Repository
 
-	router := SetupRouter("")
+	router, _ := SetupRouter(config.Config{})
 	tests := []struct {
 		name string
 		req  string
@@ -222,7 +223,7 @@ func TestHandleUpdate(t *testing.T) {
 // }
 
 func TestHandleUpdateJSON(t *testing.T) {
-	s, _:= storage.NewInMemory("")
+	s, _ := storage.NewInMemory(config.Config{})
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
@@ -230,7 +231,7 @@ func TestHandleUpdateJSON(t *testing.T) {
 	}
 	// var store repositories.Repository
 
-	router := SetupRouter("")
+	router, _ := SetupRouter(config.Config{})
 	tests := []struct {
 		name string
 		req  string
@@ -272,7 +273,7 @@ func TestHandleUpdateJSON(t *testing.T) {
 }
 
 func TestHandleValueJSON(t *testing.T) {
-	s, _:= storage.NewInMemory("")
+	s, _ := storage.NewInMemory(config.Config{})
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
@@ -280,7 +281,7 @@ func TestHandleValueJSON(t *testing.T) {
 	}
 	// var store repositories.Repository
 
-	router := SetupRouter("")
+	router, _ := SetupRouter(config.Config{})
 	tests := []struct {
 		name string
 		req  string
