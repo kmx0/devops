@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,20 +32,20 @@ func main() {
 			switch s {
 			// kill -SIGHUP XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGINT:
-				fmt.Println("Signal interrupt triggered.")
+				logrus.Info("Signal interrupt triggered.")
 				exitChan <- 0
 				// kill -SIGTERM XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGTERM:
-				fmt.Println("Signal terminte triggered.")
+				logrus.Info("Signal terminte triggered.")
 				exitChan <- 0
 
 				// kill -SIGQUIT XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGQUIT:
-				fmt.Println("Signal quit triggered.")
+				logrus.Info("Signal quit triggered.")
 				exitChan <- 0
 
 			default:
-				fmt.Println("Unknown signal.")
+				logrus.Info("Unknown signal.")
 				exitChan <- 1
 			}
 		}

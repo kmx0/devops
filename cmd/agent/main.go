@@ -44,20 +44,20 @@ func main() {
 			switch s {
 			// kill -SIGHUP XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGINT:
-				fmt.Println("Signal interrupt triggered.")
+				logrus.Info("Signal interrupt triggered.")
 				exitChan <- 0
 				// kill -SIGTERM XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGTERM:
-				fmt.Println("Signal terminte triggered.")
+				logrus.Info("Signal terminte triggered.")
 				exitChan <- 0
 
 				// kill -SIGQUIT XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGQUIT:
-				fmt.Println("Signal quit triggered.")
+				logrus.Info("Signal quit triggered.")
 				exitChan <- 0
 
 			default:
-				fmt.Println("Unknown signal.")
+				logrus.Info("Unknown signal.")
 				exitChan <- 1
 			}
 		}
@@ -103,7 +103,7 @@ func sendMetricsJSON(address string) {
 
 	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", address)
-	logrus.Info(endpoint, metricsForBody)
+	// logrus.Info(endpoint, metricsForBody)
 	// return
 	client := &http.Client{}
 	for i := 0; i < len(metricsForBody); i++ {
@@ -116,7 +116,7 @@ func sendMetricsJSON(address string) {
 		bodyIOReader := bytes.NewReader(bodyBytes)
 		request, err := http.NewRequest(http.MethodPost, endpoint, bodyIOReader)
 		if err != nil {
-			fmt.Println(err)
+			logrus.Error(err)
 			os.Exit(1)
 		}
 
@@ -130,11 +130,11 @@ func sendMetricsJSON(address string) {
 			continue
 		}
 		// печатаем код ответа
-		fmt.Println("Статус-код ", response.Status)
+		logrus.Info("Статус-код ", response.Status)
 		defer response.Body.Close()
 		// читаем поток из тела ответа
 
-		body, err := io.ReadAll(response.Body)
+		_, err = io.ReadAll(response.Body)
 		if err != nil {
 			logrus.Error("Error on Reading body")
 			logrus.Error(err)
@@ -142,7 +142,7 @@ func sendMetricsJSON(address string) {
 			continue
 		}
 		// и печатаем его
-		fmt.Println(string(body))
+		// fmt.Println(string(body))
 	}
 }
 

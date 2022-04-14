@@ -50,7 +50,6 @@ func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter,
 	return sm.MapCounter[metric], nil
 }
 func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error) {
-	logrus.Info(metrics.ID)
 	if _, ok := sm.MapCounter[metrics.ID]; !ok {
 		return metrics, errors.New("not such metric")
 	}
@@ -119,7 +118,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	encoder := json.NewEncoder(file)
 	sm.ConvertMapsToMetrisc()
 	encoder.Encode(&sm.ArrayJSONMetrics)
-	logrus.Infof("%+v", sm.ArrayJSONMetrics[0])
+	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
@@ -173,7 +172,7 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 		i++
 	}
 	copy(sm.ArrayJSONMetrics, metrics)
-	
+
 	// return metrics
 }
 
