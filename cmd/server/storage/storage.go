@@ -173,8 +173,9 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 		}
 		i++
 	}
+	logrus.Infof("%+v", metrics)
 	copy(sm.ArrayJSONMetrics, metrics)
-
+	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 	// return metrics
 }
 
