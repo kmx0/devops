@@ -141,9 +141,10 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 func NewInMemory(cfg config.Config) (*InMemory, error) {
 	rm := types.RunMetrics{}
 	return &InMemory{
-		MapCounter:  make(map[string]types.Counter),
-		MapGauge:    make(map[string]types.Gauge),
-		MetricNames: rm.MapMetrics,
+		MapCounter:       make(map[string]types.Counter),
+		MapGauge:         make(map[string]types.Gauge),
+		MetricNames:      rm.MapMetrics,
+		ArrayJSONMetrics: make([]types.Metrics, 0),
 	}, nil
 }
 func (sm *InMemory) ConvertMapsToMetrisc() {
