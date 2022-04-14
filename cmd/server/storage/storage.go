@@ -117,10 +117,9 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 
 	encoder := json.NewEncoder(file)
 	sm.ConvertMapsToMetrisc()
-	logrus.Info(sm.MapCounter)
-	logrus.Info(sm.MapGauge)
+
 	encoder.Encode(&sm.ArrayJSONMetrics)
-	logrus.Infof("%+v", sm.ArrayJSONMetrics)
+	// logrus.Infof("%+v", sm.ArrayJSONMetrics)
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
@@ -150,13 +149,13 @@ func NewInMemory(cfg config.Config) (*InMemory, error) {
 func (sm *InMemory) ConvertMapsToMetrisc() {
 	sm.Lock()
 	defer sm.Unlock()
-	// metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
+	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
 	// val := reflect.ValueOf(rm)
 	i := 0
 	for k, v := range sm.MapCounter {
 		vi64 := int64(v)
 
-		sm.ArrayJSONMetrics[i] = types.Metrics{
+		metrics[i] = types.Metrics{
 			ID:    k,
 			MType: strings.ToLower(reflect.TypeOf(v).Name()),
 			Delta: &vi64,
@@ -167,15 +166,16 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 	}
 	for k, v := range sm.MapGauge {
 		vf64 := float64(v)
-		sm.ArrayJSONMetrics[i] = types.Metrics{
+		metrics[i] = types.Metrics{
 			ID:    k,
 			MType: strings.ToLower(reflect.TypeOf(v).Name()),
 			Value: &vf64,
 		}
 		i++
 	}
-	// logrus.Infof("%+v", metrics)
-	// copy(sm.ArrayJSONMetrics, metrics)
+	logrus.Infof("%+v", metrics)
+	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
+	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 	// return metrics
 }
