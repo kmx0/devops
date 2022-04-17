@@ -18,7 +18,7 @@ import (
 // }
 
 var (
-	address       = kingpin.Flag("address", "Address on Listen").Short('a').Default("127.0.0.1:8180").String()
+	address       = kingpin.Flag("address", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
 	restore       = kingpin.Flag("restore", "restore from file or not").Short('r').Default("true").Bool()
 	storeInterval = kingpin.Flag("storeInterval", "STORE_INTERVAL").Short('i').Default("300s").Duration()
 	storeFile     = kingpin.Flag("storeFile", "STORE_FILE").Short('f').Default("/tmp/devops-metrics-db.json").String()
