@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -18,10 +19,10 @@ import (
 // }
 
 var (
-	address       = kingpin.Flag("address", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
-	restore       = kingpin.Flag("restore", "restore from file or not").Short('r').Default("true").Bool()
-	storeInterval = kingpin.Flag("storeInterval", "STORE_INTERVAL").Short('i').Default("300s").Duration()
-	storeFile     = kingpin.Flag("storeFile", "STORE_FILE").Short('f').Default("/tmp/devops-metrics-db.json").String()
+	address       = kingpin.Flag("a", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
+	restore       = kingpin.Flag("r", "restore from file or not").Short('r').Default("true").String()
+	storeInterval = kingpin.Flag("i", "STORE_INTERVAL").Short('i').Default("300s").Duration()
+	storeFile     = kingpin.Flag("f", "STORE_FILE").Short('f').Default("/tmp/devops-metrics-db.json").String()
 	// STORE_FILE
 )
 
@@ -34,7 +35,10 @@ func ReplaceUnused(cfg *config.Config) {
 		cfg.Address = *address
 	}
 	if _, ok := os.LookupEnv("RESTORE"); !ok {
-		cfg.Restore = *restore
+		if b1, err := strconv.ParseBool(*restore); err == nil {
+
+			cfg.Restore = b1
+		}
 	}
 	if _, ok := os.LookupEnv("STORE_INTERVAL"); !ok {
 		cfg.StoreInterval = *storeInterval
