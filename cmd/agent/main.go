@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,21 +16,17 @@ import (
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	rm             *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
-	address                          = kingpin.Flag("address", "Address on server for Sending Metrics ").Short('a').Default("127.0.0.1:8080").String()
-	reportInterval                   = kingpin.Flag("reportInterval", "REPORT_INTERVAL").Short('r').Default("10s").Duration()
-	pollInterval                     = kingpin.Flag("pollInterval", "POLL_INTERVAL").Short('p').Default("2s").Duration()
+	rm *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
 )
 
 func ReplaceUnused(cfg *config.Config) {
-	kingpin.Version("0.0.1")
-	kingpin.HelpFlag.Short('h')
-	kingpin.Parse()
-
+	address := flag.String("a", "127.0.0.1:8080", "Address on server for Sending Metrics ")
+	reportInterval := flag.Duration("r", 10000000000, "REPORT_INTERVAL")
+	pollInterval := flag.Duration("p", 5000000000, "POLL_INTERVAL")
+	flag.Parse()
 	if _, ok := os.LookupEnv("ADDRESS"); !ok {
 		cfg.Address = *address
 	}

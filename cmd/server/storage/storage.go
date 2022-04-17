@@ -185,7 +185,7 @@ func (sm *InMemory) ConvertMetriscToMaps() {
 	defer sm.Unlock()
 	for _, v := range sm.ArrayJSONMetrics {
 
-		logrus.Info(v)
+		// logrus.Info(v)
 
 		switch v.MType {
 		case "counter":

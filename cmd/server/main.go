@@ -1,46 +1,36 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/kmx0/devops/cmd/server/handlers"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/alecthomas/kingpin.v2"
-)
-
-// type Config struct {
-// 	Address string `env:"ADDRESS"`
-// }
-
-var (
-	address       = kingpin.Flag("a", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
-	restore       = kingpin.Flag("r", "restore from file or not").Short('r').Default("true").String()
-	storeInterval = kingpin.Flag("i", "STORE_INTERVAL").Short('i').Default("300s").Duration()
-	storeFile     = kingpin.Flag("f", "STORE_FILE").Short('f').Default("/tmp/devops-metrics-db.json").String()
-	// STORE_FILE
 )
 
 func ReplaceUnused(cfg *config.Config) {
-	kingpin.Version("0.0.1")
-	kingpin.HelpFlag.Short('h')
-	kingpin.Parse()
+	//    = flag.Flag("aa", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
+	address := flag.String("a", "127.0.0.1:8080", "Address on Listen")
+	restore := flag.Bool("r", true, "restore from file or not")
+	storeInterval := flag.Duration("i", 300000000000, "STORE_INTERVAL")
+	storeFile := flag.String("f", "/tmp/devops-metrics-db.json", "STORE_FILE")
+
+	flag.Parse()
 
 	if _, ok := os.LookupEnv("ADDRESS"); !ok {
 		cfg.Address = *address
 	}
 	if _, ok := os.LookupEnv("RESTORE"); !ok {
-		if b1, err := strconv.ParseBool(*restore); err == nil {
 
-			cfg.Restore = b1
-		}
+		cfg.Restore = *restore
 	}
 	if _, ok := os.LookupEnv("STORE_INTERVAL"); !ok {
+
 		cfg.StoreInterval = *storeInterval
 	}
 	if _, ok := os.LookupEnv("STORE_FILE"); !ok {
@@ -88,7 +78,7 @@ func main() {
 	if cfg.Restore {
 		sm.RestoreFromDisk(cfg)
 	}
-	logrus.Infof("%+v", sm.ArrayJSONMetrics)
+	// logrus.Infof("%+v", sm.ArrayJSONMetrics)
 	tickerStore := time.NewTicker(cfg.StoreInterval)
 	if cfg.StoreInterval != 0 {
 
