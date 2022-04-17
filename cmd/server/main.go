@@ -10,12 +10,39 @@ import (
 	"github.com/kmx0/devops/cmd/server/handlers"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // type Config struct {
 // 	Address string `env:"ADDRESS"`
 // }
 
+var (
+	address       = kingpin.Flag("address", "Address on Listen").Short('a').Default("127.0.0.1:8180").String()
+	restore       = kingpin.Flag("restore", "restore from file or not").Short('r').Default("true").Bool()
+	storeInterval = kingpin.Flag("storeInterval", "STORE_INTERVAL").Short('i').Default("300s").Duration()
+	storeFile     = kingpin.Flag("storeFile", "STORE_FILE").Short('f').Default("/tmp/devops-metrics-db.json").String()
+	// STORE_FILE
+)
+
+func ReplaceUnused(cfg *config.Config) {
+	kingpin.Version("0.0.1")
+	kingpin.HelpFlag.Short('h')
+	kingpin.Parse()
+
+	if _, ok := os.LookupEnv("ADDRESS"); !ok {
+		cfg.Address = *address
+	}
+	if _, ok := os.LookupEnv("RESTORE"); !ok {
+		cfg.Restore = *restore
+	}
+	if _, ok := os.LookupEnv("STORE_INTERVAL"); !ok {
+		cfg.StoreInterval = *storeInterval
+	}
+	if _, ok := os.LookupEnv("STORE_FILE"); !ok {
+		cfg.StoreFile = *storeFile
+	}
+}
 func main() {
 	logrus.SetReportCaller(true)
 	signalChanel := make(chan os.Signal, 1)
@@ -51,6 +78,7 @@ func main() {
 		}
 	}()
 	cfg := config.LoadConfig()
+	ReplaceUnused(&cfg)
 	logrus.Infof("CFG for SERVER  %+v", cfg)
 	r, sm := handlers.SetupRouter(cfg)
 	if cfg.Restore {

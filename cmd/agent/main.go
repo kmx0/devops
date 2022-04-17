@@ -15,16 +15,37 @@ import (
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	rm *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
+	rm             *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
+	address                          = kingpin.Flag("address", "Address on server for Sending Metrics ").Short('a').Default("127.0.0.1:8080").String()
+	reportInterval                   = kingpin.Flag("reportInterval", "REPORT_INTERVAL").Short('r').Default("10s").Duration()
+	pollInterval                     = kingpin.Flag("pollInterval", "POLL_INTERVAL").Short('p').Default("2s").Duration()
 )
 
+func ReplaceUnused(cfg *config.Config) {
+	kingpin.Version("0.0.1")
+	kingpin.HelpFlag.Short('h')
+	kingpin.Parse()
+
+	if _, ok := os.LookupEnv("ADDRESS"); !ok {
+		cfg.Address = *address
+	}
+
+	if _, ok := os.LookupEnv("REPORT_INTERVAL"); !ok {
+		cfg.ReportInterval = *reportInterval
+	}
+	if _, ok := os.LookupEnv("POLL_INTERVAL"); !ok {
+		cfg.PollInterval = *pollInterval
+	}
+}
 func main() {
 	// rm := types.RunMetrics{}
 	logrus.SetReportCaller(true)
 	cfg := config.LoadConfig()
+	ReplaceUnused(&cfg)
 	logrus.Infof("CFG for AGENT %+v", cfg)
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)

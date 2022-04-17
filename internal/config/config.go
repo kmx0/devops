@@ -23,5 +23,6 @@ func LoadConfig() Config {
 	if err != nil {
 		logrus.Error(err)
 	}
+
 	return cfg
 }
