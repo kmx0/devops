@@ -28,7 +28,12 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	cfg = cf
 	SetRepository(store)
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery(),
+		Decompress(),
+		Compress(),
+		gin.Logger())
+
 	r.POST("/update/gauge/", HandleWithoutID)
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
@@ -210,8 +215,8 @@ func HandleUpdateJSON(c *gin.Context) {
 		c.Status(http.StatusInternalServerError)
 	}
 	defer body.Close()
-	logrus.Info(metrics)
-	logrus.Info("UPDATE")
+	// logrus.Info(metrics)
+	// logrus.Info("UPDATE")
 	switch metrics.MType {
 	case "counter":
 		err := store.UpdateJSON(metrics)
