@@ -52,6 +52,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 func HandleAllValues(c *gin.Context) {
 	gg, cntr, _ := store.GetCurrentMetrics()
 
+	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusOK, "%+v\n%+v", gg, cntr)
 	// ntf("%s/%s/%s/%v", endpoint, val.Type().Field(i).Type.Nam
 }
