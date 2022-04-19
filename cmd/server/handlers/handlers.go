@@ -30,8 +30,8 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 
 	r := gin.New()
 	r.Use(gin.Recovery(),
-		Decompress(),
 		Compress(),
+		Decompress(),
 		gin.Logger())
 
 	r.POST("/update/gauge/", HandleWithoutID)

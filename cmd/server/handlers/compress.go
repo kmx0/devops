@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -27,11 +28,15 @@ func Compress() gin.HandlerFunc {
 		logrus.Info(c.GetHeader("Accept-Encoding"))
 		if !strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
 			c.Next()
+			return
 		}
 
 		gz, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed)
 		if err != nil {
-			io.WriteString(c.Writer, err.Error())
+			// io.WriteString(c.Writer, err.Error())
+
+			c.Status(http.StatusInternalServerError)
+			return
 		}
 		defer gz.Close()
 		// access the status we are sending
@@ -54,46 +59,27 @@ func Decompress() gin.HandlerFunc {
 			gz, err := gzip.NewReader(c.Request.Body)
 			if err != nil {
 				c.Status(http.StatusInternalServerError)
+				return
 			}
 			reader = gz
 			defer gz.Close()
 		} else {
 			reader = c.Request.Body
+			return
 		}
 		body, err := io.ReadAll(reader)
 		// access the status we are sending
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
+			return
 		}
 		c.Header("Content-Encoding", "gzip")
 		c.Header("Content-Length", fmt.Sprintf("%d", len(body)))
-		c.String(http.StatusOK, fmt.Sprintf("%d", len(body)))
 
+		c.String(http.StatusOK, fmt.Sprintf("%d", len(body)))
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 		// передаём обработчику страницы переменную типа gzipWriter для вывода данных
 		c.Next()
 	}
 }
 
-func LengthHandle(w http.ResponseWriter, r *http.Request) {
-	// переменная reader будет равна r.Body или *gzip.Reader
-	var reader io.Reader
-
-	if r.Header.Get(`Content-Encoding`) == `gzip` {
-		gz, err := gzip.NewReader(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		reader = gz
-		defer gz.Close()
-	} else {
-		reader = r.Body
-	}
-
-	body, err := io.ReadAll(reader)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Fprintf(w, "Length: %d", len(body))
-}
