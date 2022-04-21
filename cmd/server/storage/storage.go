@@ -74,7 +74,6 @@ func (sm *InMemory) UpdateJSON(metrics types.Metrics) error {
 			return errors.New("recieved nil pointer on Value")
 		}
 		sm.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
-		// logrus.Infof("%+v", sm.MapGauge)
 	}
 	return nil
 }
@@ -93,7 +92,6 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 		sm.MapCounter[metric] += types.Counter(valueInt64)
 	case "gauge":
 		if _, ok := sm.MetricNames[metric]; !ok {
-			// return errors.New("not such metric")
 			logrus.Info("Adding new metric ", metric, " Gauge")
 
 		}
@@ -119,7 +117,6 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	sm.ConvertMapsToMetrisc()
 
 	encoder.Encode(&sm.ArrayJSONMetrics)
-	// logrus.Infof("%+v", sm.ArrayJSONMetrics)
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
@@ -137,20 +134,19 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	}
 	sm.ConvertMetriscToMaps()
 }
-func NewInMemory(cfg config.Config) (*InMemory, error) {
+func NewInMemory(cfg config.Config) *InMemory {
 	rm := types.RunMetrics{}
 	return &InMemory{
 		MapCounter:       make(map[string]types.Counter),
 		MapGauge:         make(map[string]types.Gauge),
 		MetricNames:      rm.MapMetrics,
 		ArrayJSONMetrics: make([]types.Metrics, 0),
-	}, nil
+	}
 }
 func (sm *InMemory) ConvertMapsToMetrisc() {
 	sm.Lock()
 	defer sm.Unlock()
 	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
-	// val := reflect.ValueOf(rm)
 	i := 0
 	for k, v := range sm.MapCounter {
 		vi64 := int64(v)
@@ -160,8 +156,6 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 			MType: strings.ToLower(reflect.TypeOf(v).Name()),
 			Delta: &vi64,
 		}
-		// vf64, ok := v.(float64)
-
 		i++
 	}
 	for k, v := range sm.MapGauge {
@@ -177,16 +171,12 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
 	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Infof("%+v", sm.ArrayJSONMetrics)
-	// return metrics
 }
 
 func (sm *InMemory) ConvertMetriscToMaps() {
 	sm.Lock()
 	defer sm.Unlock()
 	for _, v := range sm.ArrayJSONMetrics {
-
-		// logrus.Info(v)
-
 		switch v.MType {
 		case "counter":
 			sm.MapCounter[v.ID] = types.Counter(*v.Delta)

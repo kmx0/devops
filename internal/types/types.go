@@ -19,7 +19,7 @@ type (
 	Counter int64
 
 	RunMetrics struct {
-		Alloc         Gauge 
+		Alloc         Gauge
 		BuckHashSys   Gauge
 		Frees         Gauge
 		GCCPUFraction Gauge
@@ -71,14 +71,8 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 	metrics := make([]Metrics, len(rm.MapMetrics))
 	rm.Lock()
 	defer rm.Unlock()
-	// val := reflect.ValueOf(rm)
 	i := 0
 	for k, v := range rm.MapMetrics {
-		// endpoint :=
-
-		// endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(reflect.TypeOf(v).Name()), k, v)
-		//counter or gauge
-
 		ty := strings.ToLower(reflect.TypeOf(v).Name()) //тип метрики
 		switch ty {
 		case "counter":
@@ -95,15 +89,12 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 				Delta: &vi64,
 			}
 		case "gauge":
-			// vf64, ok := v.(float64)
 			vg, ok := v.(Gauge)
 			if !ok {
 
 				logrus.Error(errors.New("cannot convert interface to float64"))
 			}
 			vf64 := float64(vg)
-			// logrus.Errorf("%+v", v)
-			// logrus.Errorf("%+v", vf64)
 			metrics[i] = Metrics{
 				ID:    k,
 				MType: strings.ToLower(reflect.TypeOf(v).Name()),
@@ -113,17 +104,12 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 		}
 		i++
 	}
-
-	// endpoint = fmt.Sprintf("%s/%s/%s/%v", endpoint, strings.ToLower(val.Type().Field(i).Type.Name()), val.Type().Field(i).Name, rmMap[val.Type().Field(i).Name])
-
-	// АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
 	return metrics
 }
 
 func (rm *RunMetrics) Set(ms runtime.MemStats) {
 	rm.Lock()
 	defer rm.Unlock()
-	// rm.MapMetrics["MapMetrics["Alloc"] = Gauge(ms.Alloc)
 	rm.MapMetrics["Alloc"] = Gauge(ms.Alloc)
 	rm.MapMetrics["BuckHashSys"] = Gauge(ms.BuckHashSys)
 	rm.MapMetrics["Frees"] = Gauge(ms.Frees)

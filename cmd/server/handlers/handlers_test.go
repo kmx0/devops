@@ -15,7 +15,7 @@ import (
 )
 
 func TestHandleUpdate(t *testing.T) {
-	s, _ := storage.NewInMemory(config.Config{})
+	s := storage.NewInMemory(config.Config{})
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
@@ -223,7 +223,7 @@ func TestHandleUpdate(t *testing.T) {
 // }
 
 func TestHandleUpdateJSON(t *testing.T) {
-	s, _ := storage.NewInMemory(config.Config{})
+	s := storage.NewInMemory(config.Config{})
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
@@ -273,7 +273,7 @@ func TestHandleUpdateJSON(t *testing.T) {
 }
 
 func TestHandleValueJSON(t *testing.T) {
-	s, _ := storage.NewInMemory(config.Config{})
+	s := storage.NewInMemory(config.Config{})
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int

@@ -33,8 +33,6 @@ func Compress() gin.HandlerFunc {
 
 		gz, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed)
 		if err != nil {
-			// io.WriteString(c.Writer, err.Error())
-
 			c.Status(http.StatusInternalServerError)
 			return
 		}
@@ -45,7 +43,6 @@ func Compress() gin.HandlerFunc {
 		// передаём обработчику страницы переменную типа gzipWriter для вывода данных
 
 		c.Writer = gzipGINWriter{ResponseWriter: c.Writer, Writer: gz}
-		// c.Status(http.StatusOK)
 		c.Next()
 		logrus.Info(status)
 	}

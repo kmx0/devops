@@ -21,10 +21,7 @@ func SetRepository(s repositories.Repository) {
 }
 
 func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
-	store, err := storage.NewInMemory(cfg)
-	if err != nil {
-		logrus.Error(err)
-	}
+	store := storage.NewInMemory(cfg)
 	cfg = cf
 	SetRepository(store)
 
@@ -38,23 +35,18 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
 	r.POST("/update/", HandleUpdateJSON)
-	// r.POST("/update/", HandleUpdateJSON)
 	r.POST("/value/", HandleValueJSON)
 
 	r.GET("/", HandleAllValues)
 	r.GET("/value/:typem/:metric", HandleValue)
-	// r.GET("/value/counter/:metric", HandleValue)
-	// r.GET("/", HandleValue)
-	// http://<АДРЕС_СЕРВЕРА>/value/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ> (со статусом http.StatusOK).
 	return r, store
 }
 
 func HandleAllValues(c *gin.Context) {
-	gg, cntr, _ := store.GetCurrentMetrics()
+	mapGauge, mapCounter, _ := store.GetCurrentMetrics()
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.String(http.StatusOK, "%+v\n%+v", gg, cntr)
-	// ntf("%s/%s/%s/%v", endpoint, val.Type().Field(i).Type.Nam
+	c.String(http.StatusOK, "%+v\n%+v", mapGauge, mapCounter)
 }
 
 func HandleValue(c *gin.Context) {
@@ -85,33 +77,21 @@ func HandleValue(c *gin.Context) {
 		return
 
 	}
-	// c.Status(http.StatusNotFound)
-	// c.String(http)
 }
 
 func HandleValueJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
-	// logrus.Info(typeM, metric, value)
 
-	// var bodyBytes []byte
 	body := c.Request.Body
-	// a := []byte{}
-	// _, err := body.Read(a)
-	// logrus.Infof("%+v", string(a))
-	// if err != nil {
-	// 	c.Status(http.StatusBadRequest)
-	// }
 	defer body.Close()
 
 	decoder := json.NewDecoder(body)
-	// var t test_struct
 	var metrics types.Metrics
 
 	err := decoder.Decode(&metrics)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 	}
-	// c.Request.Bodyjj
 	logrus.Info(metrics)
 	switch metrics.MType {
 	case "counter":
@@ -121,7 +101,6 @@ func HandleValueJSON(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, value)
-		// c.String(http.StatusOK, value.String())
 		return
 	case "gauge":
 		value, err := store.GetGaugeJSON(metrics)
@@ -138,8 +117,6 @@ func HandleValueJSON(c *gin.Context) {
 		return
 
 	}
-	// c.Status(http.StatusNotFound)
-	// c.String(http)
 }
 
 func HandleWithoutID(c *gin.Context) {
@@ -164,9 +141,7 @@ func HandleUpdate(c *gin.Context) {
 				c.Status(http.StatusInternalServerError)
 			}
 
-			// logrus.Error(err)
 		}
-		// c.Status(http.StatusOK)
 		if cfg.StoreInterval == 0 {
 
 			store.SaveToDisk(cfg)
@@ -178,16 +153,12 @@ func HandleUpdate(c *gin.Context) {
 
 		if err != nil {
 			switch {
-			// case strings.Contains(err.Error(), `not such metric`):
-			// 	c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
 				c.Status(http.StatusBadRequest)
 			default:
-				// logrus.Info(err)
 				c.Status(http.StatusInternalServerError)
 			}
 		}
-		// c.Status(http.StatusOK)
 		if cfg.StoreInterval == 0 {
 
 			store.SaveToDisk(cfg)
@@ -200,24 +171,15 @@ func HandleUpdate(c *gin.Context) {
 
 func HandleUpdateJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
-	// logrus.Info(typeM, metric, value)
-
-	// var bodyBytes []byte
-	// logrus.Info("UPDATEJSON!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
 	body := c.Request.Body
-
 	decoder := json.NewDecoder(body)
-	// var t test_struct
 	var metrics types.Metrics
 	err := decoder.Decode(&metrics)
 	if err != nil {
 		logrus.Error(err)
-		// panic(err)
 		c.Status(http.StatusInternalServerError)
 	}
 	defer body.Close()
-	// logrus.Info(metrics)
-	// logrus.Info("UPDATE")
 	switch metrics.MType {
 	case "counter":
 		err := store.UpdateJSON(metrics)
@@ -230,9 +192,7 @@ func HandleUpdateJSON(c *gin.Context) {
 				c.Status(http.StatusInternalServerError)
 			}
 
-			// logrus.Error(err)
 		}
-		// c.Status(http.StatusOK)
 		if cfg.StoreInterval == 0 {
 			store.SaveToDisk(cfg)
 		}
@@ -240,19 +200,14 @@ func HandleUpdateJSON(c *gin.Context) {
 	case "gauge":
 
 		err := store.UpdateJSON(metrics)
-		// logrus.Info(err)
 		if err != nil {
 			switch {
-			// case strings.Contains(err.Error(), `not such metric`):
-			// 	c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `recieved nil pointer on Value`):
 				c.Status(http.StatusBadRequest)
 			default:
-				// logrus.Info(err)
 				c.Status(http.StatusInternalServerError)
 			}
 		}
-		// c.Status(http.StatusOK)
 		if cfg.StoreInterval == 0 {
 			store.SaveToDisk(cfg)
 		}
