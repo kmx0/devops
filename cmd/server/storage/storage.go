@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/hash"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
@@ -60,6 +61,8 @@ func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error)
 }
 func (sm *InMemory) UpdateJSON(metrics types.Metrics) error {
 	logrus.SetReportCaller(true)
+
+	hash.CheckHash(metrics, "key")
 
 	switch metrics.MType {
 	case "counter":
@@ -114,7 +117,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	sm.ConvertMapsToMetrisc()
+	sm.ConvertMapsToMetrics()
 
 	encoder.Encode(&sm.ArrayJSONMetrics)
 }
@@ -132,7 +135,7 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 		logrus.Error(err)
 		return
 	}
-	sm.ConvertMetriscToMaps()
+	sm.ConvertMetricsToMaps()
 }
 func NewInMemory(cfg config.Config) *InMemory {
 	rm := types.RunMetrics{}
@@ -143,7 +146,7 @@ func NewInMemory(cfg config.Config) *InMemory {
 		ArrayJSONMetrics: make([]types.Metrics, 0),
 	}
 }
-func (sm *InMemory) ConvertMapsToMetrisc() {
+func (sm *InMemory) ConvertMapsToMetrics() {
 	sm.Lock()
 	defer sm.Unlock()
 	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
@@ -173,7 +176,7 @@ func (sm *InMemory) ConvertMapsToMetrisc() {
 	logrus.Infof("%+v", sm.ArrayJSONMetrics)
 }
 
-func (sm *InMemory) ConvertMetriscToMaps() {
+func (sm *InMemory) ConvertMetricsToMaps() {
 	sm.Lock()
 	defer sm.Unlock()
 	for _, v := range sm.ArrayJSONMetrics {

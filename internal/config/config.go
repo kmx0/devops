@@ -16,6 +16,7 @@ type Config struct {
 	StoreInterval  time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
 	StoreFile      string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
 	Restore        bool          `env:"RESTORE" envDefault:"true"`
+	Key            string        `env:"KEY" `
 }
 
 func LoadConfig() Config {
@@ -25,7 +26,6 @@ func LoadConfig() Config {
 	if err != nil {
 		logrus.Error(err)
 	}
-
 	return cfg
 }
 
@@ -33,6 +33,7 @@ func ReplaceUnusedInAgent(cfg *Config) {
 	address := flag.String("a", "127.0.0.1:8080", "Address on server for Sending Metrics ")
 	reportInterval := flag.Duration("r", 10000000000, "REPORT_INTERVAL")
 	pollInterval := flag.Duration("p", 5000000000, "POLL_INTERVAL")
+	key := flag.String("k", "", "KEY for hash")
 	flag.Parse()
 	if _, ok := os.LookupEnv("ADDRESS"); !ok {
 		cfg.Address = *address
@@ -44,6 +45,9 @@ func ReplaceUnusedInAgent(cfg *Config) {
 	if _, ok := os.LookupEnv("POLL_INTERVAL"); !ok {
 		cfg.PollInterval = *pollInterval
 	}
+	if _, ok := os.LookupEnv("KEY"); !ok {
+		cfg.Key = *key
+	}
 }
 
 func ReplaceUnusedInServer(cfg *Config) {
@@ -52,6 +56,7 @@ func ReplaceUnusedInServer(cfg *Config) {
 	restore := flag.Bool("r", true, "restore from file or not")
 	storeInterval := flag.Duration("i", 300000000000, "STORE_INTERVAL")
 	storeFile := flag.String("f", "/tmp/devops-metrics-db.json", "STORE_FILE")
+	key := flag.String("k", "", "KEY for hash")
 
 	flag.Parse()
 
@@ -68,5 +73,8 @@ func ReplaceUnusedInServer(cfg *Config) {
 	}
 	if _, ok := os.LookupEnv("STORE_FILE"); !ok {
 		cfg.StoreFile = *storeFile
+	}
+	if _, ok := os.LookupEnv("KEY"); !ok {
+		cfg.Key = *key
 	}
 }
