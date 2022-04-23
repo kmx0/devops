@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/kmx0/devops/internal/config"
-	"github.com/kmx0/devops/internal/hash"
+	"github.com/kmx0/devops/internal/crypto"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
@@ -48,6 +48,7 @@ func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter,
 	if value, ok := sm.MapCounter[metric]; !ok {
 		return value, errors.New("not such metric")
 	}
+
 	return sm.MapCounter[metric], nil
 }
 func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error) {
@@ -59,10 +60,14 @@ func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error)
 	metrics.Delta = &val
 	return metrics, nil
 }
-func (sm *InMemory) UpdateJSON(metrics types.Metrics) error {
+func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
 	logrus.SetReportCaller(true)
 
-	hash.CheckHash(metrics, "key")
+	err := crypto.CheckHash(metrics, cfg.Key)
+	if err != nil {
+		return err
+	}
+	logrus.Warn(err)
 
 	switch metrics.MType {
 	case "counter":
@@ -170,7 +175,7 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 		}
 		i++
 	}
-	logrus.Infof("%+v", metrics)
+	// logrus.Infof("%+v", metrics)
 	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
 	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Infof("%+v", sm.ArrayJSONMetrics)

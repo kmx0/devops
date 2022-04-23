@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/crypto"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
@@ -75,7 +76,7 @@ func main() {
 		for {
 			<-tickerSendMetrics.C
 			now := time.Now()
-			sendMetricsJSON(cfg.Address)
+			sendMetricsJSON(cfg)
 			fmt.Println(time.Since(now))
 		}
 	}()
@@ -91,11 +92,17 @@ func main() {
 
 }
 
-func sendMetricsJSON(address string) {
+func sendMetricsJSON(cfg config.Config) {
 	metricsForBody := rm.GetMetrics()
-	endpoint := fmt.Sprintf("http://%s/update/", address)
+	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
 	client := &http.Client{}
+
+	logrus.Info(cfg)
 	for i := 0; i < len(metricsForBody); i++ {
+		if cfg.Key != "" {
+			AddHash(cfg.Key, &metricsForBody[i])
+		}
+		// logrus.Infof()
 		bodyBytes, err := json.Marshal(metricsForBody[i])
 		if err != nil {
 			logrus.Error(err)
@@ -126,5 +133,15 @@ func sendMetricsJSON(address string) {
 			// os.Exit(1)
 			continue
 		}
+	}
+}
+
+func AddHash(key string, metricsP *types.Metrics) {
+
+	switch metricsP.MType {
+	case "counter":
+		metricsP.Hash = crypto.Hash(fmt.Sprintf("%s:counter:%d", metricsP.ID, *metricsP.Delta), key)
+	case "gauge":
+		metricsP.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", metricsP.ID, *metricsP.Value), key)
 	}
 }

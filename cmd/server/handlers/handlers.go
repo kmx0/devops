@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/cmd/server/storage"
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/crypto"
 	"github.com/kmx0/devops/internal/repositories"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
@@ -100,6 +102,9 @@ func HandleValueJSON(c *gin.Context) {
 			c.Status(http.StatusNotFound)
 			return
 		}
+		if cfg.Key != "" {
+			value.Hash = crypto.Hash(fmt.Sprintf("%s:counter:%d", value.ID, *value.Delta), cfg.Key)
+		}
 		c.JSON(http.StatusOK, value)
 		return
 	case "gauge":
@@ -109,6 +114,13 @@ func HandleValueJSON(c *gin.Context) {
 			c.Status(http.StatusNotFound)
 			return
 		}
+		if cfg.Key != "" {
+
+			logrus.Info(value.ID)
+			logrus.Info(value.Value)
+			value.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", value.ID, *value.Value), cfg.Key)
+		}
+		logrus.Info(cfg.Key)
 		c.JSON(http.StatusOK, value)
 		return
 	default:
@@ -182,7 +194,7 @@ func HandleUpdateJSON(c *gin.Context) {
 	defer body.Close()
 	switch metrics.MType {
 	case "counter":
-		err := store.UpdateJSON(metrics)
+		err := store.UpdateJSON(cfg, metrics)
 		if err != nil {
 			logrus.Info(err)
 			switch {
@@ -201,7 +213,7 @@ func HandleUpdateJSON(c *gin.Context) {
 
 	case "gauge":
 
-		err := store.UpdateJSON(metrics)
+		err := store.UpdateJSON(cfg, metrics)
 		if err != nil {
 			switch {
 			case strings.Contains(err.Error(), `recieved nil pointer on Value`):

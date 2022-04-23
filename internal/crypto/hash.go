@@ -1,4 +1,4 @@
-package hash
+package crypto
 
 import (
 	"crypto/hmac"
@@ -15,7 +15,7 @@ func CheckHash(metrics types.Metrics, key string) error {
 		if metrics.Delta == nil {
 			return errors.New("recieved nil pointer on Delta")
 		}
-		if metrics.Hash != "" {
+		if key != "" {
 			hash := Hash(fmt.Sprintf("%s:counter:%d", metrics.ID, *metrics.Delta), key)
 			if hash != metrics.Hash {
 				return errors.New("hash sum not matched")
@@ -26,8 +26,8 @@ func CheckHash(metrics types.Metrics, key string) error {
 		if metrics.Value == nil {
 			return errors.New("recieved nil pointer on Value")
 		}
-		if metrics.Hash != "" {
-			hash := Hash(fmt.Sprintf("%s:counter:%f", metrics.ID, *metrics.Value), key)
+		if key != "" {
+			hash := Hash(fmt.Sprintf("%s:gauge:%f", metrics.ID, *metrics.Value), key)
 			if hash != metrics.Hash {
 				return errors.New("hash sum not matched")
 			}
@@ -42,6 +42,8 @@ func Hash(src, key string) (hash string) {
 	// подписываем алгоритмом HMAC, используя SHA256
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(src))
-	hash = string(h.Sum(nil))
+	dst := h.Sum(nil)
+	hash = fmt.Sprintf("%x", dst)
+
 	return
 }
