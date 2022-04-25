@@ -67,7 +67,6 @@ func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
 	if err != nil {
 		return err
 	}
-	logrus.Warn(err)
 
 	switch metrics.MType {
 	case "counter":
@@ -114,17 +113,23 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 }
 
 func (sm *InMemory) SaveToDisk(cfg config.Config) {
-	file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
-	if err != nil {
-		logrus.Error(err)
-		return
+	if cfg.DbDSN == "" {
+		file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		defer file.Close()
+
+		encoder := json.NewEncoder(file)
+		sm.ConvertMapsToMetrics()
+
+		encoder.Encode(&sm.ArrayJSONMetrics)
 	}
-	defer file.Close()
+	if cfg.DbDSN != ""{
+		//saving to db
+	}
 
-	encoder := json.NewEncoder(file)
-	sm.ConvertMapsToMetrics()
-
-	encoder.Encode(&sm.ArrayJSONMetrics)
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)

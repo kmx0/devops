@@ -61,8 +61,10 @@ func main() {
 		go func() {
 			for {
 				<-tickerStore.C
+
 				sm.SaveToDisk(cfg)
 				logrus.Infof("Saving data to file %s", cfg.StoreFile)
+
 			}
 		}()
 	}

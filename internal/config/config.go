@@ -17,7 +17,7 @@ type Config struct {
 	StoreFile      string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
 	Restore        bool          `env:"RESTORE" envDefault:"true"`
 	Key            string        `env:"KEY" `
-	DbDSN          string        `env:"DATABASE_DSN" envDefault:"postgres://postgres:postgres@localhost:5432/metrics"`
+	DbDSN          string        `env:"DATABASE_DSN"`
 
 	// "postgres://postgres:postgres@localhost:5432/metrics"
 }
@@ -59,7 +59,7 @@ func ReplaceUnusedInServer(cfg *Config) {
 	restore := flag.Bool("r", true, "restore from file or not")
 	storeInterval := flag.Duration("i", 300000000000, "STORE_INTERVAL")
 	storeFile := flag.String("f", "/tmp/devops-metrics-db.json", "STORE_FILE")
-	// dbDSN := flag.String("d", "postgres://postgres:postgres@localhost:5432/metrics", "database URI")
+	dbDSN := flag.String("d", "", "database URI")
 	key := flag.String("k", "", "KEY for hash")
 
 	flag.Parse()
@@ -81,8 +81,7 @@ func ReplaceUnusedInServer(cfg *Config) {
 	if _, ok := os.LookupEnv("KEY"); !ok {
 		cfg.Key = *key
 	}
-	// if _, ok := os.LookupEnv("DATABASE_DSN"); ok {
-	// 	cfg.DbDSN = *dbDSN
-	// 	cfg.Restore = false
-	// }
+	if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
+		cfg.DbDSN = *dbDSN
+	}
 }
