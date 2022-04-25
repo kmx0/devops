@@ -126,8 +126,9 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 
 		encoder.Encode(&sm.ArrayJSONMetrics)
 	}
-	if cfg.DbDSN != ""{
+	if cfg.DbDSN != "" {
 		//saving to db
+		logrus.Info("Saving to DB")
 	}
 
 }
