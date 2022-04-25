@@ -14,12 +14,14 @@ import (
 
 func main() {
 	logrus.SetReportCaller(true)
+	// globalCtx := context.Background()
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
-
+	// storage.PingDB(globalCtx)
+	// return
 	exitChan := make(chan int)
 
 	go func() {
@@ -73,7 +75,7 @@ func main() {
 
 	logrus.Warn("Saving last data")
 	sm.SaveToDisk(cfg)
-
+	// globalCtx.Done()
 	logrus.Warn("Exiting with code ", exitCode)
 	os.Exit(exitCode)
 }

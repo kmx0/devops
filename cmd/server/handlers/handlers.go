@@ -40,6 +40,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	r.POST("/value/", HandleValueJSON)
 
 	r.GET("/", HandleAllValues)
+	r.GET("/ping", HandlePing)
 	r.GET("/value/:typem/:metric", HandleValue)
 	return r, store
 }
@@ -51,6 +52,19 @@ func HandleAllValues(c *gin.Context) {
 	c.String(http.StatusOK, "%+v\n%+v", mapGauge, mapCounter)
 }
 
+func HandlePing(c *gin.Context) {
+
+	ok := storage.PingDB(cfg.DbDSN)
+	if ok {
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Status(http.StatusOK)
+		return
+	}
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+}
 func HandleValue(c *gin.Context) {
 	typeM := c.Param("typem")
 	metric := c.Param("metric")
