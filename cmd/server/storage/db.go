@@ -15,7 +15,7 @@ func PingDB(urlExample string) bool {
 		logrus.Error(err)
 		return false
 	}
-	// defer db.Close()
+	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {

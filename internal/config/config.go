@@ -81,7 +81,9 @@ func ReplaceUnusedInServer(cfg *Config) {
 	if _, ok := os.LookupEnv("KEY"); !ok {
 		cfg.Key = *key
 	}
+	logrus.Info(cfg.DBDSN)
+	logrus.Info(*dbDSN)
 	// if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
-	cfg.DBDSN = *dbDSN
+		cfg.DBDSN = *dbDSN
 	// }
 }
