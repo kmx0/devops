@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -16,7 +15,7 @@ func PingDB(urlExample string) bool {
 		logrus.Error(err)
 		return false
 	}
-	defer db.Close()
+	// defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
@@ -24,6 +23,6 @@ func PingDB(urlExample string) bool {
 		return false
 	}
 
-	fmt.Println("Successfully connected!")
+	logrus.Info("Successfully connected!")
 	return true
 }

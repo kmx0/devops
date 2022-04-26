@@ -113,7 +113,7 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 }
 
 func (sm *InMemory) SaveToDisk(cfg config.Config) {
-	if cfg.DbDSN == "" {
+	if cfg.DBDSN == "" {
 		file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 		if err != nil {
 			logrus.Error(err)
@@ -126,7 +126,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 
 		encoder.Encode(&sm.ArrayJSONMetrics)
 	}
-	if cfg.DbDSN != "" {
+	if cfg.DBDSN != "" {
 		//saving to db
 		logrus.Info("Saving to DB")
 	}

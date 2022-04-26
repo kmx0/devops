@@ -17,7 +17,7 @@ type Config struct {
 	StoreFile      string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
 	Restore        bool          `env:"RESTORE" envDefault:"true"`
 	Key            string        `env:"KEY" `
-	DbDSN          string        `env:"DATABASE_DSN"`
+	DBDSN          string        `env:"DATABASE_DSN"`
 
 	// "postgres://postgres:postgres@localhost:5432/metrics"
 }
@@ -82,6 +82,6 @@ func ReplaceUnusedInServer(cfg *Config) {
 		cfg.Key = *key
 	}
 	// if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
-	cfg.DbDSN = *dbDSN
+	cfg.DBDSN = *dbDSN
 	// }
 }
