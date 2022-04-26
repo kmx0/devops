@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/kmx0/devops/internal/types"
@@ -41,7 +42,7 @@ func CheckDBExist() bool {
 	// DB.Begin()
 	// create database test
 	listDB := `SELECT datname FROM pg_database;`
-	rows, err := DB.Query(listDB)
+	rows, err := DB.QueryContext(context.Background(), listDB)
 	if err != nil {
 		logrus.Error(err)
 	}
