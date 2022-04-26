@@ -83,7 +83,7 @@ func ReplaceUnusedInServer(cfg *Config) {
 	}
 	logrus.Info(cfg.DBDSN)
 	logrus.Info(*dbDSN)
-	// if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
+	if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
 		cfg.DBDSN = *dbDSN
-	// }
+	}
 }
