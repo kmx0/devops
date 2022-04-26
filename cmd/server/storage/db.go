@@ -10,7 +10,7 @@ import (
 
 var DB *sql.DB
 var DBName = "metrics"
-var TableName = "metrics"
+var TableName = "praktikum"
 
 func PingDB(urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
@@ -30,7 +30,6 @@ func PingDB(urlExample string) bool {
 	}
 
 	logrus.Info("Successfully connected!")
-	logrus.Info(CheckDBExist())
 	if !CheckTableExist() {
 		AddTabletoDB()
 	}
@@ -94,7 +93,7 @@ func CheckTableExist() bool {
 
 func AddTabletoDB() {
 
-	req := `CREATE TABLE metrics (
+	req := `CREATE TABLE praktikum (
 		ID varchar(255),
 		Type varchar(255),
 		Delta int,
@@ -134,14 +133,14 @@ func SaveDataToDB(sm *InMemory) {
 
 	}
 	for i := 0; i < len(keysCounter); i++ {
-		insertCounter := `INSERT INTO metrics(ID, Type, Delta) values($1, $2, $3)`
+		insertCounter := `INSERT INTO praktikum(ID, Type, Delta) values($1, $2, $3)`
 		_, err := DB.Exec(insertCounter, keysCounter[i], "counter", int64(sm.MapCounter[keysCounter[i]]))
 		if err != nil {
 			logrus.Error(err)
 		}
 	}
 	for i := 0; i < len(keysGauge); i++ {
-		insertGauge := `INSERT INTO metrics(ID, Type, Value) values($1, $2, $3)`
+		insertGauge := `INSERT INTO praktikum(ID, Type, Value) values($1, $2, $3)`
 		_, err := DB.Exec(insertGauge, keysGauge[i], "gauge", float64(sm.MapGauge[keysGauge[i]]))
 		if err != nil {
 			logrus.Error(err)
@@ -155,7 +154,7 @@ func RestoreDataFromDB(sm *InMemory) {
 	sm.Lock()
 	defer sm.Unlock()
 
-	listCounter := `SELECT ID, Delta FROM metrics WHERE Type='counter';`
+	listCounter := `SELECT ID, Delta FROM praktikum WHERE Type='counter';`
 	rowsC, err := DB.Query(listCounter)
 	if err != nil {
 		logrus.Error(err)
@@ -171,7 +170,7 @@ func RestoreDataFromDB(sm *InMemory) {
 		sm.MapCounter[id] = types.Counter(delta)
 	}
 
-	listGauge := `SELECT ID, Value FROM metrics WHERE Type='gauge';`
+	listGauge := `SELECT ID, Value FROM praktikum WHERE Type='gauge';`
 	rowsG, err := DB.Query(listGauge)
 	if err != nil {
 		logrus.Error(err)
