@@ -134,7 +134,7 @@ func SaveDataToDB(sm *InMemory) {
 	}
 	for i := 0; i < len(keysCounter); i++ {
 		insertCounter := `INSERT INTO praktikum(ID, Type, Delta) values($1, $2, $3)`
-		_, err := DB.Exec(insertCounter, keysCounter[i], "counter", int64(sm.MapCounter[keysCounter[i]]))
+		_, err := DB.Exec(insertCounter, keysCounter[i], "counter", int(sm.MapCounter[keysCounter[i]]))
 		if err != nil {
 			logrus.Error(err)
 		}
