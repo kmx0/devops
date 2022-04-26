@@ -128,11 +128,14 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	}
 	if cfg.DBDSN != "" {
 		//saving to db
+		PingDB(cfg.DBDSN)
+		SaveDataToDB(sm)
 		logrus.Info("Saving to DB")
 	}
 
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
+	// if cfg.DBDSN == "" {
 	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
 	if err != nil {
 		logrus.Error(err)
@@ -147,6 +150,13 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 		return
 	}
 	sm.ConvertMetricsToMaps()
+	// }
+	if cfg.DBDSN != "" {
+		//saving to db
+		// RestoreDataFromDB(sm)
+		logrus.Info("Restoring from DB")
+	}
+
 }
 func NewInMemory(cfg config.Config) *InMemory {
 	rm := types.RunMetrics{}
