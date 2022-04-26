@@ -96,7 +96,7 @@ func AddTabletoDB() {
 	req := `CREATE TABLE praktikum (
 		ID varchar(255),
 		Type varchar(255),
-		Delta int,
+		Delta numeric,
 		Value double precision
 	);`
 	rows, err := DB.Query(req)
@@ -158,6 +158,7 @@ func RestoreDataFromDB(sm *InMemory) {
 	rowsC, err := DB.Query(listCounter)
 	if err != nil {
 		logrus.Error(err)
+		return
 	}
 	// c, _ := result
 	defer rowsC.Close()
