@@ -3,7 +3,6 @@ package config
 import (
 	"flag"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v6"
@@ -84,8 +83,8 @@ func ReplaceUnusedInServer(cfg *Config) {
 	}
 	logrus.Info(cfg.DBDSN)
 	logrus.Info(*dbDSN)
-	// if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
-	if !strings.Contains(cfg.DBDSN, "incorr") {
+	if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
+		// if !strings.Contains(cfg.DBDSN, "incorr") {
 		cfg.DBDSN = *dbDSN
 	}
 	// }
