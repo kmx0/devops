@@ -168,7 +168,7 @@ func HandleUpdate(c *gin.Context) {
 			}
 
 		}
-		if cfg.StoreInterval == 0 {
+		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
 
 			store.SaveToDisk(cfg)
 		}
@@ -185,7 +185,7 @@ func HandleUpdate(c *gin.Context) {
 				c.Status(http.StatusInternalServerError)
 			}
 		}
-		if cfg.StoreInterval == 0 {
+		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
 
 			store.SaveToDisk(cfg)
 		}
@@ -221,7 +221,7 @@ func HandleUpdateJSON(c *gin.Context) {
 			}
 
 		}
-		if cfg.StoreInterval == 0 {
+		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
 			store.SaveToDisk(cfg)
 		}
 
@@ -238,7 +238,7 @@ func HandleUpdateJSON(c *gin.Context) {
 				c.Status(http.StatusInternalServerError)
 			}
 		}
-		if cfg.StoreInterval == 0 {
+		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
 			store.SaveToDisk(cfg)
 		}
 	default:
