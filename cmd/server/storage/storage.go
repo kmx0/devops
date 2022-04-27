@@ -115,28 +115,28 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 }
 
 func (sm *InMemory) SaveToDisk(cfg config.Config) {
-	// if cfg.DBDSN == "" {
-	file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
-	if err != nil {
-		logrus.Error(err)
-		return
+	if cfg.DBDSN == "" {
+		file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		defer file.Close()
+
+		encoder := json.NewEncoder(file)
+		sm.ConvertMapsToMetrics()
+
+		encoder.Encode(&sm.ArrayJSONMetrics)
 	}
-	defer file.Close()
-
-	encoder := json.NewEncoder(file)
-	sm.ConvertMapsToMetrics()
-
-	encoder.Encode(&sm.ArrayJSONMetrics)
-	// }
-	// if cfg.DBDSN != "" {
-	//saving to db
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	// не забываем освободить ресурс
-	defer cancel()
-	PingDB(ctx, cfg.DBDSN)
-	SaveDataToDB(sm)
-	logrus.Info("Saving to DB")
-	// }
+	if cfg.DBDSN != "" {
+		//saving to db
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		// не забываем освободить ресурс
+		defer cancel()
+		PingDB(ctx, cfg.DBDSN)
+		SaveDataToDB(sm)
+		logrus.Info("Saving to DB")
+	}
 
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
