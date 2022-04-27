@@ -54,7 +54,7 @@ func HandleAllValues(c *gin.Context) {
 
 func HandlePing(c *gin.Context) {
 
-	ok := storage.PingDB(cfg.DBDSN)
+	ok := storage.PingDB(c, cfg.DBDSN)
 	if ok {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.Status(http.StatusOK)

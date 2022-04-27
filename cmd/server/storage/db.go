@@ -13,7 +13,7 @@ var DB *sql.DB
 var DBName = "metrics"
 var TableName = "praktikum"
 
-func PingDB(urlExample string) bool {
+func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
 	logrus.Info(urlExample)
 	var err error
@@ -56,6 +56,10 @@ func CheckDBExist() bool {
 			return true
 		}
 	}
+	err = rows.Err()
+	if err != nil {
+		return false
+	}
 	return false
 	// logrus.Infof("%+v", res)
 
@@ -82,6 +86,10 @@ func CheckTableExist() bool {
 		if res == TableName {
 			return true
 		}
+	}
+	err = rows.Err()
+	if err != nil {
+		return false
 	}
 	return false
 	// logrus.Infof("%+v", res)
@@ -111,6 +119,10 @@ func AddTabletoDB() {
 		rows.Scan(&res)
 		logrus.Info(res)
 
+	}
+	err = rows.Err()
+	if err != nil {
+		logrus.Error(err)
 	}
 
 }
@@ -172,6 +184,10 @@ func RestoreDataFromDB(sm *InMemory) {
 		sm.MapCounter[id] = types.Counter(delta)
 	}
 
+	err = rowsC.Err()
+	if err != nil {
+		logrus.Error(err)
+	}
 	listGauge := `SELECT ID, Value FROM praktikum WHERE Type='gauge';`
 	rowsG, err := DB.Query(listGauge)
 	if err != nil {
@@ -186,5 +202,9 @@ func RestoreDataFromDB(sm *InMemory) {
 		logrus.Info(id)
 		logrus.Info(value)
 		sm.MapGauge[id] = types.Gauge(value)
+	}
+	err = rowsG.Err()
+	if err != nil {
+		logrus.Error(err)
 	}
 }
