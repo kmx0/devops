@@ -103,7 +103,7 @@ func CheckTableExist() bool {
 func AddTabletoDB() {
 
 	req := `CREATE TABLE praktikum (
-		ID varchar(255),
+		ID varchar(255) UNIQUE,
 		Type varchar(255),
 		Delta numeric,
 		Value double precision
@@ -149,14 +149,22 @@ func SaveDataToDB(sm *InMemory) {
 		insertCounter := `INSERT INTO praktikum(ID, Type, Delta) values($1, $2, $3)`
 		_, err := DB.Exec(insertCounter, keysCounter[i], "counter", int(sm.MapCounter[keysCounter[i]]))
 		if err != nil {
-			logrus.Error(err)
+			updateCounter := `UPDATE praktikum SET Type = $1, Delta = $2 WHERE ID = $3;`
+			_, err := DB.Exec(updateCounter, "counter", int(sm.MapCounter[keysCounter[i]]), keysCounter[i])
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}
 	for i := 0; i < len(keysGauge); i++ {
 		insertGauge := `INSERT INTO praktikum(ID, Type, Value) values($1, $2, $3)`
 		_, err := DB.Exec(insertGauge, keysGauge[i], "gauge", float64(sm.MapGauge[keysGauge[i]]))
 		if err != nil {
-			logrus.Error(err)
+			updateGauge := `UPDATE praktikum SET Type = $1, Value = $2 WHERE ID = $3;`
+			_, err := DB.Exec(updateGauge, "gauge", float64(sm.MapGauge[keysGauge[i]]), keysGauge[i])
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 	}
 
