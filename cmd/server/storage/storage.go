@@ -140,24 +140,29 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 
 }
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
-	// if cfg.DBDSN == "" {
-	file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
-	if err != nil {
-		logrus.Error(err)
-		return
-	}
-	defer file.Close()
-	decoder := json.NewDecoder(file)
+	if cfg.DBDSN == "" {
+		file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		defer file.Close()
+		decoder := json.NewDecoder(file)
 
-	err = decoder.Decode(&sm.ArrayJSONMetrics)
-	if err != nil {
-		logrus.Error(err)
-		return
+		err = decoder.Decode(&sm.ArrayJSONMetrics)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		sm.ConvertMetricsToMaps()
+		logrus.Info("CHECK")
 	}
-	sm.ConvertMetricsToMaps()
-	// }
 	if cfg.DBDSN != "" {
 		//saving to db
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		// не забываем освободить ресурс
+		defer cancel()
+		PingDB(ctx, cfg.DBDSN)
 		RestoreDataFromDB(sm)
 		logrus.Info("Restoring from DB")
 	}

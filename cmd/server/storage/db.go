@@ -166,14 +166,18 @@ func SaveDataToDB(sm *InMemory) {
 func RestoreDataFromDB(sm *InMemory) {
 	sm.Lock()
 	defer sm.Unlock()
-
-	listCounter := `SELECT ID, Delta FROM praktikum WHERE Type='counter';`
-	rowsC, err := DB.Query(listCounter)
+	err := DB.Ping()
 	if err != nil {
 		logrus.Error(err)
 		return
 	}
-	// c, _ := result
+	ctx := context.Background()
+	listCounter := "SELECT ID, Delta FROM praktikum WHERE Type='counter';"
+	rowsC, err := DB.QueryContext(ctx, listCounter)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
 	defer rowsC.Close()
 	for rowsC.Next() {
 		var id string
