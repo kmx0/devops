@@ -3,13 +3,16 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"os"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/kmx0/devops/internal/types"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
-var DB *sql.DB
+var Conn *pgx.Conn
 var DBName = "metrics"
 var TableName = "praktikum"
 
@@ -17,32 +20,36 @@ func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
 	logrus.Info(urlExample)
 	var err error
-	DB, err = sql.Open("postgres", urlExample)
+	// urlExample := "postgres://username:password@localhost:5432/database_name"
+	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
-		logrus.Error(err)
-		return false
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
 	}
-	// defer DB.Close()
+	// defer conn.Close(context.Background())
 
-	err = DB.Ping()
+	err = Conn.Ping(context.Background())
 	if err != nil {
 		logrus.Error(err)
 		return false
 	}
 
 	logrus.Info("Successfully connected!")
+	logrus.Info(CheckDBExist())
 	if !CheckTableExist() {
 		AddTabletoDB()
 	}
-	logrus.Info(CheckTableExist())
+	// logrus.Info(CheckTableExist())
 	return true
 }
 
 func CheckDBExist() bool {
-	// DB.Begin()
-	// create database test
+	if Conn == nil {
+		logrus.Error("Error nil Conn")
+		return false
+	}
 	listDB := `SELECT datname FROM pg_database;`
-	rows, err := DB.QueryContext(context.Background(), listDB)
+	rows, err := Conn.Query(context.Background(), listDB)
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -61,19 +68,15 @@ func CheckDBExist() bool {
 		return false
 	}
 	return false
-	// logrus.Infof("%+v", res)
-
-	// // dynamic
-	// insertDynStmt := `insert into "Students"("Name", "Roll") values($1, $2)`
-	// _, e = DB.Exec(insertDynStmt, "Jane", 2)
-	// CheckError(e)
 }
 
 func CheckTableExist() bool {
-	// DB.Begin()
-	// create database test
-	listDB := `SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='public';`
-	rows, err := DB.Query(listDB)
+	if Conn == nil {
+		logrus.Error("Error nil Conn")
+		return false
+	}
+	listTables := `SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='public';`
+	rows, err := Conn.Query(context.Background(), listTables)
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -92,23 +95,20 @@ func CheckTableExist() bool {
 		return false
 	}
 	return false
-	// logrus.Infof("%+v", res)
-
-	// // dynamic
-	// insertDynStmt := `insert into "Students"("Name", "Roll") values($1, $2)`
-	// _, e = DB.Exec(insertDynStmt, "Jane", 2)
-	// CheckError(e)
 }
 
 func AddTabletoDB() {
-
+	if Conn == nil {
+		logrus.Error("Error nil Conn")
+		return
+	}
 	req := `CREATE TABLE praktikum (
 		ID varchar(255) UNIQUE,
 		Type varchar(255),
 		Delta numeric,
 		Value double precision
 	);`
-	rows, err := DB.Query(req)
+	rows, err := Conn.Query(context.Background(), req)
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -128,6 +128,10 @@ func AddTabletoDB() {
 }
 
 func SaveDataToDB(sm *InMemory) {
+	if Conn == nil {
+		logrus.Error("Error nil Conn")
+		return
+	}
 	sm.Lock()
 	defer sm.Unlock()
 	// TRUNCATE TABLE COMPANY
@@ -147,10 +151,10 @@ func SaveDataToDB(sm *InMemory) {
 	}
 	for i := 0; i < len(keysCounter); i++ {
 		insertCounter := `INSERT INTO praktikum(ID, Type, Delta) values($1, $2, $3)`
-		_, err := DB.Exec(insertCounter, keysCounter[i], "counter", int(sm.MapCounter[keysCounter[i]]))
+		_, err := Conn.Exec(context.Background(), insertCounter, keysCounter[i], "counter", int(sm.MapCounter[keysCounter[i]]))
 		if err != nil {
 			updateCounter := `UPDATE praktikum SET Type = $1, Delta = $2 WHERE ID = $3;`
-			_, err := DB.Exec(updateCounter, "counter", int(sm.MapCounter[keysCounter[i]]), keysCounter[i])
+			_, err := Conn.Exec(context.Background(), updateCounter, "counter", int(sm.MapCounter[keysCounter[i]]), keysCounter[i])
 			if err != nil {
 				logrus.Error(err)
 			}
@@ -158,30 +162,32 @@ func SaveDataToDB(sm *InMemory) {
 	}
 	for i := 0; i < len(keysGauge); i++ {
 		insertGauge := `INSERT INTO praktikum(ID, Type, Value) values($1, $2, $3)`
-		_, err := DB.Exec(insertGauge, keysGauge[i], "gauge", float64(sm.MapGauge[keysGauge[i]]))
+		_, err := Conn.Exec(context.Background(), insertGauge, keysGauge[i], "gauge", float64(sm.MapGauge[keysGauge[i]]))
 		if err != nil {
 			updateGauge := `UPDATE praktikum SET Type = $1, Value = $2 WHERE ID = $3;`
-			_, err := DB.Exec(updateGauge, "gauge", float64(sm.MapGauge[keysGauge[i]]), keysGauge[i])
+			_, err := Conn.Exec(context.Background(), updateGauge, "gauge", float64(sm.MapGauge[keysGauge[i]]), keysGauge[i])
 			if err != nil {
 				logrus.Error(err)
 			}
 		}
 	}
 
-	// listDB := `SELECT datname FROM pg_database;`
-
 }
 func RestoreDataFromDB(sm *InMemory) {
-	sm.Lock()
-	defer sm.Unlock()
-	err := DB.Ping()
-	if err != nil {
-		logrus.Error(err)
+	if Conn == nil {
+		logrus.Error("Error nil Conn")
 		return
 	}
+	sm.Lock()
+	defer sm.Unlock()
+	// err := Conn.Ping()
+	// if err != nil {
+	// 	logrus.Error(err)
+	// 	return
+	// }
 	ctx := context.Background()
 	listCounter := "SELECT ID, Delta FROM praktikum WHERE Type='counter';"
-	rowsC, err := DB.QueryContext(ctx, listCounter)
+	rowsC, err := Conn.Query(ctx, listCounter)
 	if err != nil {
 		logrus.Error(err)
 		return
@@ -201,7 +207,7 @@ func RestoreDataFromDB(sm *InMemory) {
 		logrus.Error(err)
 	}
 	listGauge := `SELECT ID, Value FROM praktikum WHERE Type='gauge';`
-	rowsG, err := DB.Query(listGauge)
+	rowsG, err := Conn.Query(ctx, listGauge)
 	if err != nil {
 		logrus.Error(err)
 	}
