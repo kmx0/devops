@@ -37,6 +37,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
 	r.POST("/update/", HandleUpdateJSON)
+	r.POST("/update/", HandleUpdateJSON)
 	r.POST("/value/", HandleValueJSON)
 
 	r.GET("/", HandleAllValues)
@@ -243,6 +244,60 @@ func HandleUpdateJSON(c *gin.Context) {
 		}
 	default:
 		c.Status(http.StatusNotImplemented)
+	}
+
+}
+
+func HandleUpdateBatchJSON(c *gin.Context) {
+	logrus.SetReportCaller(true)
+	body := c.Request.Body
+	decoder := json.NewDecoder(body)
+	var metrics []types.Metrics
+	err := decoder.Decode(&metrics)
+	if err != nil {
+		logrus.Error(err)
+		c.Status(http.StatusInternalServerError)
+	}
+	for _, v := range metrics {
+		defer body.Close()
+		switch v.MType {
+		case "counter":
+			err := store.UpdateJSON(cfg, v)
+			if err != nil {
+				logrus.Info(err)
+				switch {
+				case strings.Contains(err.Error(), `recieved nil pointer on Delta`):
+					c.Status(http.StatusBadRequest)
+				case strings.Contains(err.Error(), `hash sum not matched`):
+					c.Status(http.StatusBadRequest)
+				default:
+					c.Status(http.StatusInternalServerError)
+				}
+
+			}
+			if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
+				store.SaveToDisk(cfg)
+			}
+
+		case "gauge":
+
+			err := store.UpdateJSON(cfg, v)
+			if err != nil {
+				switch {
+				case strings.Contains(err.Error(), `recieved nil pointer on Value`):
+					c.Status(http.StatusBadRequest)
+				case strings.Contains(err.Error(), `hash sum not matched`):
+					c.Status(http.StatusBadRequest)
+				default:
+					c.Status(http.StatusInternalServerError)
+				}
+			}
+			if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
+				store.SaveToDisk(cfg)
+			}
+		default:
+			c.Status(http.StatusNotImplemented)
+		}
 	}
 
 }
