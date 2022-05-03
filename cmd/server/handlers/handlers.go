@@ -37,7 +37,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
 	r.POST("/update/", HandleUpdateJSON)
-	r.POST("/update/", HandleUpdateJSON)
+	r.POST("/updates/", HandleUpdateBatchJSON)
 	r.POST("/value/", HandleValueJSON)
 
 	r.GET("/", HandleAllValues)
