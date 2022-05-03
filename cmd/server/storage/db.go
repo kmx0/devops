@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var DB *sql.DB
 var Conn *pgx.Conn
 var DBName = "metrics"
 var TableName = "praktikum"
