@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -77,7 +78,7 @@ func main() {
 			<-tickerSendMetrics.C
 			now := time.Now()
 			sendMetricsJSON(cfg)
-			fmt.Println(time.Since(now))
+			logrus.Info(time.Since(now))
 		}
 	}()
 
@@ -152,6 +153,7 @@ func sendMetricsJSON(cfg config.Config) {
 		}
 		bodyIOReader := bytes.NewReader(bodyBytes)
 		request, err := http.NewRequest(http.MethodPost, endpoint, bodyIOReader)
+		errors.Is(nil, err)
 		if err != nil {
 			logrus.Error(err)
 			os.Exit(1)
