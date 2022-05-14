@@ -93,48 +93,6 @@ func main() {
 
 }
 
-// func sendMetricsBatchJSON(cfg config.Config) {
-// 	metricsForBody := rm.GetMetrics()
-// 	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
-// 	client := &http.Client{}
-
-// 	logrus.Info(cfg)
-// 	for i := 0; i < len(metricsForBody); i++ {
-// 		if cfg.Key != "" {
-// 			AddHash(cfg.Key, &metricsForBody[i])
-// 		}
-// 		// logrus.Infof()
-// 	}
-// 	bodyBytes, err := json.Marshal(metricsForBody)
-// 	if err != nil {
-// 		logrus.Error(err)
-// 	}
-// 	bodyIOReader := bytes.NewReader(bodyBytes)
-// 	request, err := http.NewRequest(http.MethodPost, endpoint, bodyIOReader)
-// 	if err != nil {
-// 		logrus.Error(err)
-// 		os.Exit(1)
-// 	}
-
-// 	request.Header.Add("Content-Type", "application/json")
-// 	response, err := client.Do(request)
-// 	if err != nil {
-// 		logrus.Error("Error on requesting")
-// 		logrus.Error(err)
-// 	}
-// 	// печатаем код ответа
-// 	logrus.Info("Статус-код ", response.Status)
-// 	defer response.Body.Close()
-// 	// читаем поток из тела ответа
-// 	_, err = io.ReadAll(response.Body)
-// 	if err != nil {
-// 		logrus.Error("Error on Reading body")
-// 		logrus.Error(err)
-// 		// os.Exit(1)
-// 	}
-
-// }
-
 func sendMetricsJSON(cfg config.Config) {
 	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
