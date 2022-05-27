@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,6 +50,12 @@ type (
 		TotalAllo     Gauge
 		PollCount     Counter
 		RandomValue   Gauge
+		//14 incr===
+		TotalMemory     Gauge
+		FreeMemory      Gauge
+		CPUutilization1 Gauge
+		//
+
 		sync.RWMutex
 		MapMetrics map[string]interface{}
 	}
@@ -144,4 +152,14 @@ func (rm *RunMetrics) Set(ms runtime.MemStats) {
 	rm.MapMetrics["PollCount"] = (rm.MapMetrics["PollCount"].(Counter)) + Counter(1)
 	rand.Seed(time.Now().UnixNano())
 	rm.MapMetrics["RandomValue"] = Gauge(rand.Float64())
+}
+
+func (rm *RunMetrics) SetGopsutil() {
+	rm.Lock()
+	defer rm.Unlock()
+	v, _ := mem.VirtualMemory()
+	p, _ := cpu.Counts(false)
+	rm.MapMetrics["TotalMemory"] = Gauge(v.Total)
+	rm.MapMetrics["FreeMemory"] = Gauge(v.Free)
+	rm.MapMetrics["CPUutilization1"] = Gauge(p)
 }

@@ -31,6 +31,7 @@ func main() {
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
 	rm.Set(m)
+	rm.SetGopsutil()
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
 		syscall.SIGINT,
@@ -69,6 +70,7 @@ func main() {
 			<-tickerFill.C
 			runtime.ReadMemStats(&m)
 			rm.Set(m)
+			rm.SetGopsutil()
 		}
 	}()
 
