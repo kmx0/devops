@@ -158,8 +158,8 @@ func (rm *RunMetrics) SetGopsutil() {
 	rm.Lock()
 	defer rm.Unlock()
 	v, _ := mem.VirtualMemory()
-	p, _ := cpu.Counts(false)
+	p, _ := cpu.Percent(time.Second, false)
 	rm.MapMetrics["TotalMemory"] = Gauge(v.Total)
 	rm.MapMetrics["FreeMemory"] = Gauge(v.Free)
-	rm.MapMetrics["CPUutilization1"] = Gauge(p)
+	rm.MapMetrics["CPUutilization1"] = Gauge(p[0])
 }
