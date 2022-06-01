@@ -190,19 +190,26 @@ func HandleUpdateJSON(c *gin.Context) {
 	}
 	defer body.Close()
 	if metrics.MType == "counter" || metrics.MType == "gauge" {
-		logrus.Error(err)
-		switch {
-		case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`):
-			c.Status(http.StatusBadRequest)
-		case strings.Contains(err.Error(), `hash sum not matched`):
-			c.Status(http.StatusBadRequest)
-		default:
-			c.Status(http.StatusInternalServerError)
+		err := store.UpdateJSON(cfg, metrics)
+
+		if err != nil {
+			logrus.Error(err)
+
+			switch {
+			case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`):
+				c.Status(http.StatusBadRequest)
+			case strings.Contains(err.Error(), `hash sum not matched`):
+				c.Status(http.StatusBadRequest)
+			default:
+				c.Status(http.StatusInternalServerError)
+			}
+		} else {
+
+			if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
+				store.SaveToDisk(cfg)
+			}
 		}
 
-		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
-			store.SaveToDisk(cfg)
-		}
 	} else {
 		c.Status(http.StatusNotImplemented)
 	}
