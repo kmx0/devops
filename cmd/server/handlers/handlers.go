@@ -156,13 +156,12 @@ func HandleUpdate(c *gin.Context) {
 	metric := c.Param("metric")
 	value := c.Param("value")
 	logrus.Info(typeM, metric, value)
-	switch typeM {
-	case "counter":
+	if typeM == "counter" || typeM == "gauge" {
 		err := store.Update(typeM, metric, value)
 		if err != nil {
 			logrus.Info(err)
 			switch {
-			case strings.Contains(err.Error(), `strconv.ParseInt: parsing`):
+			case strings.Contains(err.Error(), `strconv.ParseInt: parsing`) || strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
 				c.Status(http.StatusBadRequest)
 			default:
 				c.Status(http.StatusInternalServerError)
@@ -173,24 +172,7 @@ func HandleUpdate(c *gin.Context) {
 
 			store.SaveToDisk(cfg)
 		}
-	case "gauge":
-
-		err := store.Update(typeM, metric, value)
-		logrus.Info(err)
-
-		if err != nil {
-			switch {
-			case strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
-				c.Status(http.StatusBadRequest)
-			default:
-				c.Status(http.StatusInternalServerError)
-			}
-		}
-		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
-
-			store.SaveToDisk(cfg)
-		}
-	default:
+	} else {
 		c.Status(http.StatusNotImplemented)
 	}
 
@@ -207,42 +189,21 @@ func HandleUpdateJSON(c *gin.Context) {
 		c.Status(http.StatusInternalServerError)
 	}
 	defer body.Close()
-	switch metrics.MType {
-	case "counter":
-		err := store.UpdateJSON(cfg, metrics)
-		if err != nil {
-			logrus.Info(err)
-			switch {
-			case strings.Contains(err.Error(), `recieved nil pointer on Delta`):
-				c.Status(http.StatusBadRequest)
-			case strings.Contains(err.Error(), `hash sum not matched`):
-				c.Status(http.StatusBadRequest)
-			default:
-				c.Status(http.StatusInternalServerError)
-			}
-
+	if metrics.MType == "counter" || metrics.MType == "gauge" {
+		logrus.Error(err)
+		switch {
+		case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`):
+			c.Status(http.StatusBadRequest)
+		case strings.Contains(err.Error(), `hash sum not matched`):
+			c.Status(http.StatusBadRequest)
+		default:
+			c.Status(http.StatusInternalServerError)
 		}
+
 		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
 			store.SaveToDisk(cfg)
 		}
-
-	case "gauge":
-
-		err := store.UpdateJSON(cfg, metrics)
-		if err != nil {
-			switch {
-			case strings.Contains(err.Error(), `recieved nil pointer on Value`):
-				c.Status(http.StatusBadRequest)
-			case strings.Contains(err.Error(), `hash sum not matched`):
-				c.Status(http.StatusBadRequest)
-			default:
-				c.Status(http.StatusInternalServerError)
-			}
-		}
-		if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
-			store.SaveToDisk(cfg)
-		}
-	default:
+	} else {
 		c.Status(http.StatusNotImplemented)
 	}
 
@@ -260,15 +221,12 @@ func HandleUpdateBatchJSON(c *gin.Context) {
 	}
 	for _, v := range metrics {
 		defer body.Close()
-		switch v.MType {
-		case "counter":
+		if v.MType == "counter" || v.MType == "gauge" {
 			err := store.UpdateJSON(cfg, v)
 			if err != nil {
-				logrus.Info(err)
+				logrus.Error(err)
 				switch {
-				case strings.Contains(err.Error(), `recieved nil pointer on Delta`):
-					c.Status(http.StatusBadRequest)
-				case strings.Contains(err.Error(), `hash sum not matched`):
+				case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`) || strings.Contains(err.Error(), `hash sum not matched`):
 					c.Status(http.StatusBadRequest)
 				default:
 					c.Status(http.StatusInternalServerError)
@@ -278,25 +236,9 @@ func HandleUpdateBatchJSON(c *gin.Context) {
 			if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
 				store.SaveToDisk(cfg)
 			}
-
-		case "gauge":
-
-			err := store.UpdateJSON(cfg, v)
-			if err != nil {
-				switch {
-				case strings.Contains(err.Error(), `recieved nil pointer on Value`):
-					c.Status(http.StatusBadRequest)
-				case strings.Contains(err.Error(), `hash sum not matched`):
-					c.Status(http.StatusBadRequest)
-				default:
-					c.Status(http.StatusInternalServerError)
-				}
-			}
-			if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
-				store.SaveToDisk(cfg)
-			}
-		default:
+		} else {
 			c.Status(http.StatusNotImplemented)
+
 		}
 	}
 
