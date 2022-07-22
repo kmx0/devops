@@ -7,6 +7,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "net/http/pprof" // подключаем пакет pprof
+
 	"github.com/kmx0/devops/cmd/server/handlers"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/sirupsen/logrus"

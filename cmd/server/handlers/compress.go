@@ -30,7 +30,7 @@ func Compress() gin.HandlerFunc {
 			return
 		}
 
-		gz, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed)
+		gz, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed)// mb bestCompression?
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return

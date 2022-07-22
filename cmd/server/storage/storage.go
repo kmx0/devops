@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
-	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -30,14 +29,12 @@ func (sm *InMemory) GetCurrentMetrics() (map[string]types.Gauge, map[string]type
 }
 func (sm *InMemory) GetGauge(metricType string, metric string) (types.Gauge, error) {
 	if value, ok := sm.MapGauge[metric]; !ok {
-		logrus.Info(value, ok)
+		logrus.Debug(value, ok)
 		return value, errors.New("not such metric")
 	}
-	logrus.Info(metric)
 	return sm.MapGauge[metric], nil
 }
 func (sm *InMemory) GetGaugeJSON(metrics types.Metrics) (types.Metrics, error) {
-	logrus.Info(metrics.ID)
 	if _, ok := sm.MapGauge[metrics.ID]; !ok {
 		return metrics, errors.New("not such metric")
 	}
@@ -65,18 +62,19 @@ func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error)
 func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
 	logrus.SetReportCaller(true)
 
-	err := crypto.CheckHash(metrics, cfg.Key)
-	if err != nil {
-		return err
+	if cfg.Key != "" {
+		err := crypto.CheckHash(metrics, cfg.Key)
+		if err != nil {
+			return fmt.Errorf("incorrect hash: %v", err)
+		}
 	}
-
 	switch metrics.MType {
 	case "counter":
 		if metrics.Delta == nil {
 			return errors.New("recieved nil pointer on Delta")
 		}
 		sm.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
-		logrus.Infof("%+v", sm.MapCounter)
+		logrus.Debugf("%+v", sm.MapCounter)
 
 	case "gauge":
 		if metrics.Value == nil {
@@ -180,6 +178,7 @@ func NewInMemory(cfg config.Config) *InMemory {
 func (sm *InMemory) ConvertMapsToMetrics() {
 	sm.Lock()
 	defer sm.Unlock()
+
 	metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
 	i := 0
 	for k, v := range sm.MapCounter {
@@ -187,7 +186,8 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 
 		metrics[i] = types.Metrics{
 			ID:    k,
-			MType: strings.ToLower(reflect.TypeOf(v).Name()),
+			MType: "counter",
+			// MType: strings.ToLower(reflect.TypeOf(v).Name()), // исправлен после профилирования
 			Delta: &vi64,
 		}
 		i++
@@ -195,8 +195,9 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 	for k, v := range sm.MapGauge {
 		vf64 := float64(v)
 		metrics[i] = types.Metrics{
-			ID:    k,
-			MType: strings.ToLower(reflect.TypeOf(v).Name()),
+			ID: k,
+			// MType: strings.ToLower(reflect.TypeOf(v).Name()),// исправлен после профилирования
+			MType: "gauge",
 			Value: &vf64,
 		}
 		i++
@@ -204,7 +205,7 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 	// logrus.Infof("%+v", metrics)
 	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
 	copy(sm.ArrayJSONMetrics, metrics)
-	logrus.Infof("%+v", sm.ArrayJSONMetrics)
+	logrus.Debugf("%+v", sm.ArrayJSONMetrics)
 }
 
 func (sm *InMemory) ConvertMetricsToMaps() {

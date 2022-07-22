@@ -41,9 +41,9 @@ func main() {
 	exitChan := make(chan int)
 	go func() {
 		for {
+			time.Sleep(3 * time.Second)
 			s := <-signalChanel
 			switch s {
-			// kill -SIGHUP XXXX [XXXX - идентификатор процесса для программы]
 			case syscall.SIGINT:
 				logrus.Info("Signal interrupt triggered.")
 				exitChan <- 0

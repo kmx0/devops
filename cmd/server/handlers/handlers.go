@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/cmd/server/storage"
 	"github.com/kmx0/devops/internal/config"
@@ -32,7 +33,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 		Compress(),
 		Decompress(),
 		gin.Logger())
-
+	pprof.Register(r)
 	r.POST("/update/gauge/", HandleWithoutID)
 	r.POST("/update/counter/", HandleWithoutID)
 	r.POST("/update/:typem/:metric/:value", HandleUpdate)
@@ -52,6 +53,10 @@ func HandleAllValues(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(http.StatusOK, "%+v\n%+v", mapGauge, mapCounter)
 }
+
+// func HandlePprof(c *gin.Context) {
+// 	c.
+// }
 
 func HandlePing(c *gin.Context) {
 
@@ -196,7 +201,7 @@ func HandleUpdateJSON(c *gin.Context) {
 			logrus.Error(err)
 
 			switch {
-			case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`):
+			case strings.Contains(err.Error(), `recieved nil pointer on Delta`)|| strings.Contains(err.Error(), `recieved nil pointer on Value`):
 				c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `hash sum not matched`):
 				c.Status(http.StatusBadRequest)

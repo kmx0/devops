@@ -19,15 +19,15 @@ var TableName = "praktikum"
 
 func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
-	logrus.Info(urlExample)
+	
 	var err error
+	
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	// defer conn.Close(context.Background())
 
 	err = Conn.Ping(context.Background())
 	if err != nil {
@@ -35,12 +35,9 @@ func PingDB(ctx context.Context, urlExample string) bool {
 		return false
 	}
 
-	logrus.Info("Successfully connected!")
-	logrus.Info(CheckDBExist())
 	if !CheckTableExist() {
 		AddTabletoDB()
 	}
-	// logrus.Info(CheckTableExist())
 	return true
 }
 
@@ -59,7 +56,6 @@ func CheckDBExist() bool {
 	for rows.Next() {
 		var res string
 		rows.Scan(&res)
-		logrus.Info(res)
 		if res == DBName {
 			return true
 		}
@@ -86,7 +82,7 @@ func CheckTableExist() bool {
 	for rows.Next() {
 		var res string
 		rows.Scan(&res)
-		logrus.Info(res)
+		// logrus.Info(res)
 		if res == TableName {
 			return true
 		}
@@ -118,7 +114,7 @@ func AddTabletoDB() {
 	for rows.Next() {
 		var res string
 		rows.Scan(&res)
-		logrus.Info(res)
+		// logrus.Info(res)
 
 	}
 	err = rows.Err()
@@ -137,36 +133,24 @@ func SaveDataToDB(sm *InMemory) {
 	defer sm.Unlock()
 	// TRUNCATE TABLE COMPANY
 	// metrics := make([]types.Metrics, len(sm.MapCounter)+len(sm.MapGauge))
-
-	keysCounter := make([]string, 0, len(sm.MapCounter))
-	keysGauge := make([]string, 0, len(sm.MapGauge))
-
-	for k := range sm.MapCounter {
-		keysCounter = append(keysCounter, k)
-
-	}
-
-	for k := range sm.MapGauge {
-		keysGauge = append(keysGauge, k)
-
-	}
-	for i := 0; i < len(keysCounter); i++ {
+	for k, v := range sm.MapCounter {
 		insertCounter := `INSERT INTO praktikum(ID, Type, Delta) values($1, $2, $3)`
-		_, err := Conn.Exec(context.Background(), insertCounter, keysCounter[i], "counter", int(sm.MapCounter[keysCounter[i]]))
+		_, err := Conn.Exec(context.Background(), insertCounter, k, "counter", int(v))
 		if err != nil {
 			updateCounter := `UPDATE praktikum SET Type = $1, Delta = $2 WHERE ID = $3;`
-			_, err := Conn.Exec(context.Background(), updateCounter, "counter", int(sm.MapCounter[keysCounter[i]]), keysCounter[i])
+			_, err := Conn.Exec(context.Background(), updateCounter, "counter", int(v), k)
 			if err != nil {
 				logrus.Error(err)
 			}
 		}
 	}
-	for i := 0; i < len(keysGauge); i++ {
+
+	for k, v := range sm.MapGauge {
 		insertGauge := `INSERT INTO praktikum(ID, Type, Value) values($1, $2, $3)`
-		_, err := Conn.Exec(context.Background(), insertGauge, keysGauge[i], "gauge", float64(sm.MapGauge[keysGauge[i]]))
+		_, err := Conn.Exec(context.Background(), insertGauge, k, "gauge", float64(v))
 		if err != nil {
 			updateGauge := `UPDATE praktikum SET Type = $1, Value = $2 WHERE ID = $3;`
-			_, err := Conn.Exec(context.Background(), updateGauge, "gauge", float64(sm.MapGauge[keysGauge[i]]), keysGauge[i])
+			_, err := Conn.Exec(context.Background(), updateGauge, "gauge", float64(v), k)
 			if err != nil {
 				logrus.Error(err)
 			}
@@ -181,11 +165,6 @@ func RestoreDataFromDB(sm *InMemory) {
 	}
 	sm.Lock()
 	defer sm.Unlock()
-	// err := Conn.Ping()
-	// if err != nil {
-	// 	logrus.Error(err)
-	// 	return
-	// }
 	ctx := context.Background()
 	listCounter := "SELECT ID, Delta FROM praktikum WHERE Type='counter';"
 	rowsC, err := Conn.Query(ctx, listCounter)
@@ -198,8 +177,6 @@ func RestoreDataFromDB(sm *InMemory) {
 		var id string
 		var delta int64
 		rowsC.Scan(&id, &delta)
-		logrus.Info(id)
-		logrus.Info(delta)
 		sm.MapCounter[id] = types.Counter(delta)
 	}
 
@@ -212,14 +189,11 @@ func RestoreDataFromDB(sm *InMemory) {
 	if err != nil {
 		logrus.Error(err)
 	}
-	// c, _ := result
 	defer rowsG.Close()
 	for rowsG.Next() {
 		var id string
 		var value float64
 		rowsG.Scan(&id, &value)
-		logrus.Info(id)
-		logrus.Info(value)
 		sm.MapGauge[id] = types.Gauge(value)
 	}
 	err = rowsG.Err()
