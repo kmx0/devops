@@ -24,6 +24,7 @@ func main() {
 		syscall.SIGQUIT)
 	// storage.PingDB(globalCtx)
 	// return
+	logrus.Info("Check me")
 	exitChan := make(chan int)
 
 	go func() {
