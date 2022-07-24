@@ -218,7 +218,7 @@ func ExampleHandlePing() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
+	defer response.Body.Close()
 	// печатаем код ответа
 	fmt.Println(response.Status)
 	// Output:
@@ -332,44 +332,6 @@ func TestHandleAllValues(t *testing.T) {
 	//Checking
 
 }
-
-// func TestHandleValue() (t *testing.T) {
-
-// 	go r.Run(":8183")
-// 	time.Sleep(time.Second * 2)
-// 	client := &http.Client{}
-
-// 	endpoint := "http://127.0.0.1:8183/"
-// 	request, err := http.NewRequest(http.MethodGet, endpoint, nil)
-// 	if err != nil {
-// 		logrus.Error(err)
-// 	}
-
-// 	response, err := client.Do(request)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	defer response.Body.Close()
-
-// 	payload, err := io.ReadAll(response.Body)
-
-// 	gm := make(map[string]types.Gauge)
-// 	cm := make(map[string]types.Counter)
-// 	gm["Alloc"] = types.Gauge(1213)
-// 	gm["Alloc2"] = types.Gauge(1214)
-// 	cm["PollCount"] = types.Counter(12)
-// 	cm["PollCount2"] = types.Counter(14)
-// 	expect := fmt.Sprintf("%+v\n%+v", gm, cm)
-// 	t.Run("1 test", func(t *testing.T) {
-
-// 		assert.Equal(t, err, nil)
-// 		assert.Equal(t, response.StatusCode, 200)
-// 		assert.Equal(t, payload, []byte(expect))
-// 	})
-
-// 	//Checking
-
-// }
 
 func TestHandleValue(t *testing.T) {
 	// s := storage.NewInMemory(config.Config{})
