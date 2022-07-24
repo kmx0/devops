@@ -192,38 +192,39 @@ func TestHandleValueJSON(t *testing.T) {
 	}
 }
 
-func ExampleHandlePing() {
+// func ExampleHandlePing() {
 
-	cfg.DBDSN = "postgres://postgres:postgres@localhost:5432/metrics"
-	store = storage.NewInMemory(cfg)
-	SetRepository(store)
+// 	cfg.DBDSN = "postgres://postgres:postgres@localhost:5432/metrics"
 
-	r := gin.Default()
+// 	store = storage.NewInMemory(cfg)
+// 	SetRepository(store)
 
-	r.GET("/ping", HandlePing)
+// 	r := gin.Default()
 
-	// Listen and serve on 0.0.0.0:8080
-	go r.Run(":8181")
-	// Prepaire HTTP client
-	time.Sleep(time.Second * 2)
-	client := &http.Client{}
+// 	r.GET("/ping", HandlePing)
 
-	endpoint := "http://127.0.0.1:8181/ping"
-	request, err := http.NewRequest(http.MethodGet, endpoint, nil)
-	if err != nil {
-		logrus.Error(err)
-	}
+// 	// Listen and serve on 0.0.0.0:8080
+// 	go r.Run(":8181")
+// 	// Prepaire HTTP client
+// 	time.Sleep(time.Second * 2)
+// 	client := &http.Client{}
 
-	response, err := client.Do(request)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer response.Body.Close()
-	// печатаем код ответа
-	fmt.Println(response.Status)
-	// Output:
-	// 200 OK
-}
+// 	endpoint := "http://127.0.0.1:8181/ping"
+// 	request, err := http.NewRequest(http.MethodGet, endpoint, nil)
+// 	if err != nil {
+// 		logrus.Error(err)
+// 	}
+
+// 	response, err := client.Do(request)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	defer response.Body.Close()
+// 	// печатаем код ответа
+// 	fmt.Println(response.Status)
+// 	// Output:
+// 	// 200 OK
+// }
 
 type testPostgres struct{}
 
