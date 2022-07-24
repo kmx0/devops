@@ -16,7 +16,7 @@ var DB *sql.DB
 var Conn *pgx.Conn
 var DBName = "metrics"
 var TableName = "praktikum"
-
+// PingDB - Connect to DB, check Exist tables and add new tables
 func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
 	
@@ -35,13 +35,13 @@ func PingDB(ctx context.Context, urlExample string) bool {
 		return false
 	}
 
-	if !CheckTableExist() {
-		AddTabletoDB()
+	if !checkTableExist() {
+		addTabletoDB()
 	}
 	return true
 }
 
-func CheckDBExist() bool {
+func checkDBExist() bool {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
 		return false
@@ -67,7 +67,7 @@ func CheckDBExist() bool {
 	return false
 }
 
-func CheckTableExist() bool {
+func checkTableExist() bool {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
 		return false
@@ -94,7 +94,7 @@ func CheckTableExist() bool {
 	return false
 }
 
-func AddTabletoDB() {
+func addTabletoDB() {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
 		return
@@ -123,7 +123,8 @@ func AddTabletoDB() {
 	}
 
 }
-
+// SaveDataToDB - saving Metrics to DB
+// If metrics already exist on db then update values in DB
 func SaveDataToDB(sm *InMemory) {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
@@ -158,6 +159,8 @@ func SaveDataToDB(sm *InMemory) {
 	}
 
 }
+// RestoreDataFromDB - restoring Metrics from DB
+// need call where flag Restore = true
 func RestoreDataFromDB(sm *InMemory) {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")

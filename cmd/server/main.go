@@ -16,15 +16,11 @@ import (
 
 func main() {
 	logrus.SetReportCaller(true)
-	// globalCtx := context.Background()
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
-	// storage.PingDB(globalCtx)
-	// return
-	logrus.Info("Check me")
 	exitChan := make(chan int)
 
 	go func() {

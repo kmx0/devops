@@ -63,7 +63,7 @@ func main() {
 			}
 		}
 	}()
-
+	//every cfg.PollInterval seconds will filled RuntimeMemory values
 	tickerFill := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for {
@@ -73,7 +73,7 @@ func main() {
 			rm.SetGopsutil()
 		}
 	}()
-
+	//ever cfg.ReportInterval seconds will sended to server Metrics
 	tickerSendMetrics := time.NewTicker(cfg.ReportInterval)
 	go func() {
 		for {
@@ -95,6 +95,7 @@ func main() {
 
 }
 
+//sending Metrics use JSON format
 func sendMetricsJSON(cfg config.Config) {
 	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
@@ -140,6 +141,7 @@ func sendMetricsJSON(cfg config.Config) {
 	}
 }
 
+// add Hash to JSON Metrics
 func AddHash(key string, metricsP *types.Metrics) {
 
 	switch metricsP.MType {

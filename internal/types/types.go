@@ -19,7 +19,7 @@ type (
 	Gauge float64
 
 	Counter int64
-
+	// RunMetrics - strcut for filling metrics from Memory Stats
 	RunMetrics struct {
 		Alloc         Gauge
 		BuckHashSys   Gauge
@@ -60,6 +60,8 @@ type (
 		MapMetrics map[string]interface{}
 	}
 )
+
+// Metrics - struct for sending data use JSON format
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
@@ -75,6 +77,7 @@ func (c Counter) String() string {
 	return fmt.Sprintf("%d", c)
 }
 
+// GetMetrics - convert metrics from RunMetrics struct to Metrics struct for sending use JSON format
 func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 
 	metrics := make([]Metrics, len(rm.MapMetrics))
@@ -116,6 +119,8 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 	return metrics
 }
 
+// Set - function for setting metrics from Memory Stats
+// Use in agent code
 func (rm *RunMetrics) Set(ms runtime.MemStats) {
 	rm.Lock()
 	defer rm.Unlock()
@@ -154,6 +159,8 @@ func (rm *RunMetrics) Set(ms runtime.MemStats) {
 	rm.MapMetrics["RandomValue"] = Gauge(rand.Float64())
 }
 
+// Set - function for setting metrics from Gopsitil
+// Use in agent code
 func (rm *RunMetrics) SetGopsutil() {
 	rm.Lock()
 	defer rm.Unlock()

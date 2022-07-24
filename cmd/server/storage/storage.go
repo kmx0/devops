@@ -15,7 +15,7 @@ import (
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
-
+// InMemory - implements Repository interface
 type InMemory struct {
 	MapCounter       map[string]types.Counter
 	MapGauge         map[string]types.Gauge
@@ -59,6 +59,8 @@ func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error)
 	metrics.Delta = &val
 	return metrics, nil
 }
+// UpdateJSON - check hash in JSON 
+// saving metrics to Maps
 func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
 	logrus.SetReportCaller(true)
 
@@ -84,6 +86,8 @@ func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
 	}
 	return nil
 }
+// UpdateJSON - saving metrics to Maps without checking hash
+// not using JSON struct
 func (sm *InMemory) Update(metricType string, metric string, value string) error {
 	logrus.SetReportCaller(true)
 
@@ -111,7 +115,7 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 	}
 	return nil
 }
-
+// SaveToDisk - saving metrics from Maps to file or DB
 func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	if cfg.DBDSN == "" {
 		file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
@@ -129,7 +133,6 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	if cfg.DBDSN != "" {
 		//saving to db
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		// не забываем освободить ресурс
 		defer cancel()
 		PingDB(ctx, cfg.DBDSN)
 		SaveDataToDB(sm)
@@ -137,6 +140,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	}
 
 }
+// RestoreFromDisk - Get Metrics from storage before start server, if flag Restore = true
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	if cfg.DBDSN == "" {
 		file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
@@ -153,7 +157,6 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 			return
 		}
 		sm.ConvertMetricsToMaps()
-		logrus.Info("CHECK")
 	}
 	if cfg.DBDSN != "" {
 		//saving to db
@@ -166,6 +169,7 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	}
 
 }
+// Constructor for InMemory
 func NewInMemory(cfg config.Config) *InMemory {
 	rm := types.RunMetrics{}
 	return &InMemory{
@@ -175,6 +179,7 @@ func NewInMemory(cfg config.Config) *InMemory {
 		ArrayJSONMetrics: make([]types.Metrics, 0),
 	}
 }
+// ConvertMapsToMetrics - Converting from Maps to Metrics struct for JSON format
 func (sm *InMemory) ConvertMapsToMetrics() {
 	sm.Lock()
 	defer sm.Unlock()
@@ -202,12 +207,11 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 		}
 		i++
 	}
-	// logrus.Infof("%+v", metrics)
 	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
 	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Debugf("%+v", sm.ArrayJSONMetrics)
 }
-
+// ConvertMetricsToMaps - Converting from Metrics struct to Maps
 func (sm *InMemory) ConvertMetricsToMaps() {
 	sm.Lock()
 	defer sm.Unlock()

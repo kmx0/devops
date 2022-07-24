@@ -96,8 +96,8 @@ func PingDBBeforeProfiling(ctx context.Context, urlExample string) bool {
 		return false
 	}
 
-	if !CheckTableExist() {
-		AddTabletoDB()
+	if !checkTableExist() {
+		addTabletoDB()
 	}
 	return true
 }
@@ -121,8 +121,8 @@ func PingDBProfiled(ctx context.Context, urlExample string) bool {
 		return false
 	}
 
-	if !CheckTableExist() {
-		AddTabletoDB()
+	if !checkTableExist() {
+		addTabletoDB()
 	}
 	return true
 }

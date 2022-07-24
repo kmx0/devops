@@ -10,18 +10,29 @@ import (
 )
 
 type Config struct {
-	Address        string        `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
+	// Адрес, на котором будет запущен сервер
+	Address string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
+	// Интервал передачи метрик серверу
 	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
-	StoreInterval  time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
-	StoreFile      string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore        bool          `env:"RESTORE" envDefault:"true"`
-	Key            string        `env:"KEY" `
-	DBDSN          string        `env:"DATABASE_DSN"`
-
+	// Интервал заполнения метрик
+	PollInterval time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
+	// Частота сохранения метрик на стороне сервера
+	// Если равно 0, то необходимо сразу записывать в хранилище
+	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"300s"`
+	// Файл для сохранения метрик
+	StoreFile string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
+	// Необходимость восстанавливать данные из хранилища при запуске
+	Restore bool `env:"RESTORE" envDefault:"true"`
+	// Фактически соль для хэшироварния данных при передаче
+	// и проверке при приеме
+	Key string `env:"KEY" `
+	//параметры базы данных
+	// например:
 	// "postgres://postgres:postgres@localhost:5432/metrics"
+	DBDSN string `env:"DATABASE_DSN"`
 }
 
+// Парсинг значений из environment или опций запуска
 func LoadConfig() Config {
 	logrus.SetReportCaller(true)
 	var cfg Config
@@ -32,6 +43,8 @@ func LoadConfig() Config {
 	return cfg
 }
 
+// Установка значений по умолчанию для опций, не укзанных при старте
+// для Агента
 func ReplaceUnusedInAgent(cfg *Config) {
 	address := flag.String("a", "127.0.0.1:8080", "Address on server for Sending Metrics ")
 	reportInterval := flag.Duration("r", 10000000000, "REPORT_INTERVAL")
@@ -52,7 +65,8 @@ func ReplaceUnusedInAgent(cfg *Config) {
 		cfg.Key = *key
 	}
 }
-
+// Установка значений по умолчанию для опций, не укзанных при старте
+// для Сервера
 func ReplaceUnusedInServer(cfg *Config) {
 	//    = flag.Flag("aa", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
 	address := flag.String("a", "127.0.0.1:8080", "Address on Listen")

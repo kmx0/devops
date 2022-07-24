@@ -33,6 +33,8 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 		Compress(),
 		Decompress(),
 		gin.Logger())
+		//Added for profiling
+		//Listen in address:port/debug/pprof
 	pprof.Register(r)
 	r.POST("/update/gauge/", HandleWithoutID)
 	r.POST("/update/counter/", HandleWithoutID)
@@ -46,7 +48,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	r.GET("/value/:typem/:metric", HandleValue)
 	return r, store
 }
-
+// HandleAllValues - Handling Get request by route /
 func HandleAllValues(c *gin.Context) {
 	mapGauge, mapCounter, _ := store.GetCurrentMetrics()
 
@@ -54,10 +56,8 @@ func HandleAllValues(c *gin.Context) {
 	c.String(http.StatusOK, "%+v\n%+v", mapGauge, mapCounter)
 }
 
-// func HandlePprof(c *gin.Context) {
-// 	c.
-// }
-
+// HandlePing - Checking DB connection
+// Get Request by route /ping
 func HandlePing(c *gin.Context) {
 
 	ok := storage.PingDB(c, cfg.DBDSN)
@@ -71,6 +71,7 @@ func HandlePing(c *gin.Context) {
 		return
 	}
 }
+// HandleValue - Get Request metric value by route /value/:mtype/:metric
 func HandleValue(c *gin.Context) {
 	typeM := c.Param("typem")
 	metric := c.Param("metric")
@@ -101,6 +102,8 @@ func HandleValue(c *gin.Context) {
 	}
 }
 
+// HandleValueJSON - Post Request by route /value/ 
+// returning JSON body 
 func HandleValueJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
 
@@ -155,6 +158,8 @@ func HandleWithoutID(c *gin.Context) {
 	c.Status(http.StatusNotFound)
 }
 
+// HandleUpdate - Post Request by route /update/:typem/:metric/:value
+// Its Update Metric value in Memory and save to Disk
 func HandleUpdate(c *gin.Context) {
 	logrus.SetReportCaller(true)
 	typeM := c.Param("typem")
@@ -182,7 +187,9 @@ func HandleUpdate(c *gin.Context) {
 	}
 
 }
-
+// HandleUpdate - Post Request by route /update/ 
+// In body JSON Metrics struct
+// Its Update Metric value in Memory and save to Disk
 func HandleUpdateJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
 	body := c.Request.Body
@@ -220,7 +227,7 @@ func HandleUpdateJSON(c *gin.Context) {
 	}
 
 }
-
+// HandleUpdateBatchJSON - like HandleUpdateJSON, but come array metrics
 func HandleUpdateBatchJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
 	body := c.Request.Body

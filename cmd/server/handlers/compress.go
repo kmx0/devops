@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//Реализует интерфейс Writer
 type gzipGINWriter struct {
 	gin.ResponseWriter
 	Writer io.Writer
@@ -21,6 +22,8 @@ func (w gzipGINWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
+// Сжимает отправляемые данные, если клиент поддерживает сжатие
+// поле Accept-Encoding.
 func Compress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -30,27 +33,24 @@ func Compress() gin.HandlerFunc {
 			return
 		}
 
-		gz, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed)// mb bestCompression?
+		gz, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed) // mb bestCompression?
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
 		defer gz.Close()
-		// access the status we are sending
-		// status := c.Writer.Status()
 		c.Header("Content-Encoding", "gzip")
 		// передаём обработчику страницы переменную типа gzipWriter для вывода данных
-
 		c.Writer = gzipGINWriter{ResponseWriter: c.Writer, Writer: gz}
 		c.Next()
-		// logrus.Info(status)
 	}
 }
 
+// Распаковывет принятые данные, в случае если клиент поддерживает сжатие
+// поле Accept-Encoding.
 func Decompress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reader io.Reader
-		// logrus.Info(c.GetHeader("Content-Encoding"))
 		if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
 			gz, err := gzip.NewReader(c.Request.Body)
 			if err != nil {
@@ -74,7 +74,6 @@ func Decompress() gin.HandlerFunc {
 
 		c.String(http.StatusOK, fmt.Sprintf("%d", len(body)))
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-		// передаём обработчику страницы переменную типа gzipWriter для вывода данных
 		c.Next()
 	}
 }

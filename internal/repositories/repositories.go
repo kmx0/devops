@@ -4,7 +4,9 @@ import (
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 )
-
+// Repository - interface for storing data 
+// Exist two struct for implementing its interface
+// File or Postgres DB
 type Repository interface {
 	Update(metric, name, value string) error
 	UpdateJSON(config.Config, types.Metrics) error
