@@ -398,8 +398,8 @@ func TestHandleValue(t *testing.T) {
 	// requestPost, _ := http.NewRequest(http.MethodGet, "/value/gauge/testSetGet134", nil)
 
 	for _, tt := range tests {
-		w := httptest.NewRecorder()
 		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
 
 			logrus.Info(tt.req)
 			request, _ := http.NewRequest(http.MethodGet, tt.req, nil)
