@@ -33,8 +33,8 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 		Compress(),
 		Decompress(),
 		gin.Logger())
-		//Added for profiling
-		//Listen in address:port/debug/pprof
+	//Added for profiling
+	//Listen in address:port/debug/pprof
 	pprof.Register(r)
 	r.POST("/update/gauge/", HandleWithoutID)
 	r.POST("/update/counter/", HandleWithoutID)
@@ -48,6 +48,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	r.GET("/value/:typem/:metric", HandleValue)
 	return r, store
 }
+
 // HandleAllValues - Handling Get request by route /
 func HandleAllValues(c *gin.Context) {
 	mapGauge, mapCounter, _ := store.GetCurrentMetrics()
@@ -71,6 +72,7 @@ func HandlePing(c *gin.Context) {
 		return
 	}
 }
+
 // HandleValue - Get Request metric value by route /value/:mtype/:metric
 func HandleValue(c *gin.Context) {
 	typeM := c.Param("typem")
@@ -102,8 +104,8 @@ func HandleValue(c *gin.Context) {
 	}
 }
 
-// HandleValueJSON - Post Request by route /value/ 
-// returning JSON body 
+// HandleValueJSON - Post Request by route /value/
+// returning JSON body
 func HandleValueJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
 
@@ -120,28 +122,30 @@ func HandleValueJSON(c *gin.Context) {
 	logrus.Info(metrics)
 	switch metrics.MType {
 	case "counter":
-		value, err := store.GetCounterJSON(metrics)
+		delta, err := store.GetCounterJSON(metrics.ID)
 		if err != nil {
 			c.Status(http.StatusNotFound)
 			return
 		}
+		metrics.Delta = &delta
 		if cfg.Key != "" {
-			value.Hash = crypto.Hash(fmt.Sprintf("%s:counter:%d", value.ID, *value.Delta), cfg.Key)
+			metrics.Hash = crypto.Hash(fmt.Sprintf("%s:counter:%d", metrics.ID, *metrics.Delta), cfg.Key)
 		}
-		c.JSON(http.StatusOK, value)
+		c.JSON(http.StatusOK, metrics)
 		return
 	case "gauge":
-		value, err := store.GetGaugeJSON(metrics)
+		value, err := store.GetGaugeJSON(metrics.ID)
 		logrus.Info(err)
 		if err != nil {
 			c.Status(http.StatusNotFound)
 			return
 		}
+		metrics.Value = &value
 		if cfg.Key != "" {
 
-			logrus.Info(value.ID)
-			logrus.Info(value.Value)
-			value.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", value.ID, *value.Value), cfg.Key)
+			logrus.Info(metrics.ID)
+			logrus.Info(metrics.Value)
+			metrics.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", metrics.ID, *metrics.Value), cfg.Key)
 		}
 		logrus.Info(cfg.Key)
 		c.JSON(http.StatusOK, value)
@@ -187,7 +191,8 @@ func HandleUpdate(c *gin.Context) {
 	}
 
 }
-// HandleUpdate - Post Request by route /update/ 
+
+// HandleUpdate - Post Request by route /update/
 // In body JSON Metrics struct
 // Its Update Metric value in Memory and save to Disk
 func HandleUpdateJSON(c *gin.Context) {
@@ -202,13 +207,13 @@ func HandleUpdateJSON(c *gin.Context) {
 	}
 	defer body.Close()
 	if metrics.MType == "counter" || metrics.MType == "gauge" {
-		err := store.UpdateJSON(cfg, metrics)
+		err := store.UpdateJSON(cfg.Key, metrics)
 
 		if err != nil {
 			logrus.Error(err)
 
 			switch {
-			case strings.Contains(err.Error(), `recieved nil pointer on Delta`)|| strings.Contains(err.Error(), `recieved nil pointer on Value`):
+			case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`):
 				c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `hash sum not matched`):
 				c.Status(http.StatusBadRequest)
@@ -227,6 +232,7 @@ func HandleUpdateJSON(c *gin.Context) {
 	}
 
 }
+
 // HandleUpdateBatchJSON - like HandleUpdateJSON, but come array metrics
 func HandleUpdateBatchJSON(c *gin.Context) {
 	logrus.SetReportCaller(true)
@@ -241,7 +247,7 @@ func HandleUpdateBatchJSON(c *gin.Context) {
 	for _, v := range metrics {
 		defer body.Close()
 		if v.MType == "counter" || v.MType == "gauge" {
-			err := store.UpdateJSON(cfg, v)
+			err := store.UpdateJSON(cfg.Key, v)
 			if err != nil {
 				logrus.Error(err)
 				switch {

@@ -15,6 +15,7 @@ import (
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
+
 // InMemory - implements Repository interface
 type InMemory struct {
 	MapCounter       map[string]types.Counter
@@ -34,14 +35,13 @@ func (sm *InMemory) GetGauge(metricType string, metric string) (types.Gauge, err
 	}
 	return sm.MapGauge[metric], nil
 }
-func (sm *InMemory) GetGaugeJSON(metrics types.Metrics) (types.Metrics, error) {
-	if _, ok := sm.MapGauge[metrics.ID]; !ok {
-		return metrics, errors.New("not such metric")
+func (sm *InMemory) GetGaugeJSON(metricID string) (float64, error) {
+	if _, ok := sm.MapGauge[metricID]; !ok {
+		return 0, errors.New("not such metric")
 	}
-	val := float64(sm.MapGauge[metrics.ID])
+	val := float64(sm.MapGauge[metricID])
 
-	metrics.Value = &val
-	return metrics, nil
+	return val, nil
 }
 func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter, error) {
 	if value, ok := sm.MapCounter[metric]; !ok {
@@ -50,22 +50,22 @@ func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter,
 
 	return sm.MapCounter[metric], nil
 }
-func (sm *InMemory) GetCounterJSON(metrics types.Metrics) (types.Metrics, error) {
-	if _, ok := sm.MapCounter[metrics.ID]; !ok {
-		return metrics, errors.New("not such metric")
+func (sm *InMemory) GetCounterJSON(metricID string) (int64, error) {
+	if _, ok := sm.MapCounter[metricID]; !ok {
+		return 0, errors.New("not such metric")
 	}
-	val := int64(sm.MapCounter[metrics.ID])
+	delta := int64(sm.MapCounter[metricID])
 
-	metrics.Delta = &val
-	return metrics, nil
+	return delta, nil
 }
-// UpdateJSON - check hash in JSON 
+
+// UpdateJSON - check hash in JSON
 // saving metrics to Maps
-func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
+func (sm *InMemory) UpdateJSON(hashkey string, metrics types.Metrics) error {
 	logrus.SetReportCaller(true)
 
-	if cfg.Key != "" {
-		err := crypto.CheckHash(metrics, cfg.Key)
+	if hashkey != "" {
+		err := crypto.CheckHash(metrics, hashkey)
 		if err != nil {
 			return fmt.Errorf("incorrect hash: %v", err)
 		}
@@ -86,7 +86,8 @@ func (sm *InMemory) UpdateJSON(cfg config.Config, metrics types.Metrics) error {
 	}
 	return nil
 }
-// UpdateJSON - saving metrics to Maps without checking hash
+
+// Update - saving metrics to Maps without checking hash
 // not using JSON struct
 func (sm *InMemory) Update(metricType string, metric string, value string) error {
 	logrus.SetReportCaller(true)
@@ -115,6 +116,7 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 	}
 	return nil
 }
+
 // SaveToDisk - saving metrics from Maps to file or DB
 func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	if cfg.DBDSN == "" {
@@ -140,6 +142,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 	}
 
 }
+
 // RestoreFromDisk - Get Metrics from storage before start server, if flag Restore = true
 func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	if cfg.DBDSN == "" {
@@ -169,6 +172,7 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 	}
 
 }
+
 // Constructor for InMemory
 func NewInMemory(cfg config.Config) *InMemory {
 	rm := types.RunMetrics{}
@@ -179,6 +183,7 @@ func NewInMemory(cfg config.Config) *InMemory {
 		ArrayJSONMetrics: make([]types.Metrics, 0),
 	}
 }
+
 // ConvertMapsToMetrics - Converting from Maps to Metrics struct for JSON format
 func (sm *InMemory) ConvertMapsToMetrics() {
 	sm.Lock()
@@ -211,6 +216,7 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Debugf("%+v", sm.ArrayJSONMetrics)
 }
+
 // ConvertMetricsToMaps - Converting from Metrics struct to Maps
 func (sm *InMemory) ConvertMetricsToMaps() {
 	sm.Lock()

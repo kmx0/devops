@@ -137,24 +137,39 @@ func TestHandleUpdateJSON(t *testing.T) {
 }
 
 func TestHandleValueJSON(t *testing.T) {
-	s := storage.NewInMemory(config.Config{})
-	SetRepository(s)
+	cfg = config.Config{
+		Key: "hashkey",
+	}
 	type wantStruct struct {
 		statusCode int
 	}
-
-	router, _ := SetupRouter(config.Config{})
+	router, s := SetupRouter(cfg)
+	s.MapGauge["Alloc"] = types.Gauge(1)
+	s.MapCounter["PollCount"] = types.Counter(1)
+	SetRepository(s)
 	tests := []struct {
 		name string
 		req  string
+		hash string
 		body types.Metrics
 		want wantStruct
 	}{
 		{
-			name: "valueJSON_POST_request_1",
+			name: "PollCount correct",
 			req:  "/value/",
 			body: types.Metrics{
 				ID:    "PollCount",
+				MType: "counter",
+			},
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+		{
+			name: "PollCount incorrect",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "FailPollCount",
 				MType: "counter",
 			},
 			want: wantStruct{
@@ -162,14 +177,36 @@ func TestHandleValueJSON(t *testing.T) {
 			},
 		},
 		{
-			name: "valueJSON_POST_request_2",
+			name: "Alloc correct",
 			req:  "/value/",
 			body: types.Metrics{
 				ID:    "Alloc",
 				MType: "gauge",
 			},
 			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+		{
+			name: "Alloc incorrect",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "FailAlloc",
+				MType: "gauge",
+			},
+			want: wantStruct{
 				statusCode: 404,
+			},
+		},
+		{
+			name: "Incorrect metric type",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "Fail",
+				MType: "fail",
+			},
+			want: wantStruct{
+				statusCode: 400,
 			},
 		},
 	}
@@ -235,7 +272,7 @@ func (t *testPostgres) Set(ctx context.Context, key string, v interface{}) error
 	return nil
 }
 
-func (t *testPostgres) UpdateJSON(config.Config, types.Metrics) error {
+func (t *testPostgres) UpdateJSON(string, types.Metrics) error {
 	return nil
 }
 func (t *testPostgres) GetGauge(metric, name string) (g types.Gauge, e error) {
@@ -247,10 +284,10 @@ func (t *testPostgres) GetGauge(metric, name string) (g types.Gauge, e error) {
 	return
 }
 
-func (t *testPostgres) GetCounterJSON(types.Metrics) (m types.Metrics, e error) {
+func (t *testPostgres) GetCounterJSON(string) (d int64, e error) {
 	return
 }
-func (t *testPostgres) GetGaugeJSON(types.Metrics) (m types.Metrics, e error) {
+func (t *testPostgres) GetGaugeJSON(string) (v float64, e error) {
 	return
 }
 
@@ -376,7 +413,7 @@ func TestHandleValue(t *testing.T) {
 		},
 		{
 			name: "Unknown Type",
-			req:  "/value/unknowtype",
+			req:  "/value/unknowtype/test",
 			want: wantStruct{
 				statusCode: 404,
 			},
