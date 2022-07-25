@@ -36,11 +36,12 @@ func (sm *InMemory) GetGauge(metricType string, metric string) (types.Gauge, err
 	return sm.MapGauge[metric], nil
 }
 func (sm *InMemory) GetGaugeJSON(metricID string) (float64, error) {
+	logrus.Info(metricID)
 	if _, ok := sm.MapGauge[metricID]; !ok {
 		return 0, errors.New("not such metric")
 	}
 	val := float64(sm.MapGauge[metricID])
-
+	logrus.Info(val)
 	return val, nil
 }
 func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter, error) {
