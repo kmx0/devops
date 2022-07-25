@@ -106,7 +106,6 @@ func sendMetricsJSON(cfg config.Config) {
 		if cfg.Key != "" {
 			AddHash(cfg.Key, &metricsForBody[i])
 		}
-		// logrus.Infof()
 		bodyBytes, err := json.Marshal(metricsForBody[i])
 		if err != nil {
 			logrus.Error(err)

@@ -63,7 +63,6 @@ func (sm *InMemory) ConvertMapsToMetricsBeforeProfiling() {
 		}
 		i++
 	}
-	// logrus.Infof("%+v", metrics)
 	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
 	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Debugf("%+v", sm.ArrayJSONMetrics)
@@ -94,7 +93,6 @@ func (sm *InMemory) ConvertMapsToMetricsProfiled() {
 		}
 		i++
 	}
-	// logrus.Infof("%+v", i)
 	sm.ArrayJSONMetrics = make([]types.Metrics, len(metrics))
 	copy(sm.ArrayJSONMetrics, metrics)
 	logrus.Debugf("%+v", sm.ArrayJSONMetrics)
@@ -526,8 +524,6 @@ func TestUpdate(t *testing.T) {
 			err := s.Update(tt.metricType, tt.metric, tt.value)
 
 			if err != nil {
-				logrus.Info(err.Error())
-				logrus.Info(tt.want.err.Error())
 				assert.Equal(t, strings.Contains(err.Error(), tt.want.err.Error()), true)
 
 			} else {

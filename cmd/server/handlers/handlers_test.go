@@ -26,9 +26,7 @@ func TestHandleUpdate(t *testing.T) {
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
-		// counter     types.Counter
 	}
-	// var store repositories.Repository
 
 	router, _ := SetupRouter(config.Config{})
 	tests := []struct {
@@ -76,9 +74,7 @@ func TestHandleUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			// logrus.Info(tt.req)
 			w := httptest.NewRecorder()
-			// req, _ := http.NewRequest("GET", "/ping", nil)
 			request, _ := http.NewRequest(http.MethodPost, tt.req, nil)
 
 			router.ServeHTTP(w, request)
@@ -87,8 +83,6 @@ func TestHandleUpdate(t *testing.T) {
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
 			err := res.Body.Close()
 			require.NoError(t, err)
-			// mapresult, err := ioutil.ReadAll(res.Body)
-			// HandleCounter(tt.args.w, tt.args.r)
 		})
 	}
 }
@@ -97,7 +91,6 @@ func TestHandleUpdateJSON(t *testing.T) {
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
-		// counter     types.Counter
 	}
 
 	router, _ := SetupRouter(config.Config{})
@@ -312,13 +305,6 @@ func (t *testPostgres) RestoreFromDisk(cfg config.Config) {}
 
 func (t *testPostgres) SaveToDisk(cfg config.Config) {}
 
-// func HandleAllValues(c *gin.Context) {
-// 	mapGauge, mapCounter, _ := store.GetCurrentMetrics()
-
-// 	c.Header("Content-Type", "text/html; charset=utf-8")
-// 	c.String(http.StatusOK, "%+v\n%+v", mapGauge, mapCounter)
-// }
-
 func TestHandleAllValues(t *testing.T) {
 
 	store = &testPostgres{}
@@ -390,7 +376,6 @@ func TestHandleValue(t *testing.T) {
 	type wantStruct struct {
 		statusCode int
 	}
-	// var store repositories.Repository
 
 	tests := []struct {
 		name string
@@ -433,13 +418,11 @@ func TestHandleValue(t *testing.T) {
 			},
 		},
 	}
-	// requestPost, _ := http.NewRequest(http.MethodGet, "/value/gauge/testSetGet134", nil)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
-			logrus.Info(tt.req)
 			request, _ := http.NewRequest(http.MethodGet, tt.req, nil)
 
 			r.ServeHTTP(w, request)

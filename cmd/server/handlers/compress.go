@@ -27,7 +27,6 @@ func (w gzipGINWriter) Write(b []byte) (int, error) {
 func Compress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		// logrus.Info(c.GetHeader("Accept-Encoding"))
 		if !strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
 			c.Next()
 			return

@@ -77,7 +77,6 @@ func HandlePing(c *gin.Context) {
 func HandleValue(c *gin.Context) {
 	typeM := c.Param("typem")
 	metric := c.Param("metric")
-	logrus.Info(metric)
 	switch typeM {
 	case "counter":
 		value, err := store.GetCounter(typeM, metric)
@@ -89,7 +88,6 @@ func HandleValue(c *gin.Context) {
 		return
 	case "gauge":
 		value, err := store.GetGauge(typeM, metric)
-		logrus.Info(err)
 		if err != nil {
 			c.Status(http.StatusNotFound)
 			return
@@ -119,7 +117,6 @@ func HandleValueJSON(c *gin.Context) {
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 	}
-	logrus.Info(metrics)
 	switch metrics.MType {
 	case "counter":
 		delta, err := store.GetCounterJSON(metrics.ID)
@@ -135,7 +132,6 @@ func HandleValueJSON(c *gin.Context) {
 		return
 	case "gauge":
 		value, err := store.GetGaugeJSON(metrics.ID)
-		logrus.Info(err)
 		if err != nil {
 			c.Status(http.StatusNotFound)
 			return
@@ -143,11 +139,8 @@ func HandleValueJSON(c *gin.Context) {
 		metrics.Value = &value
 		if cfg.Key != "" {
 
-			logrus.Info(metrics.ID)
-			logrus.Info(metrics.Value)
 			metrics.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", metrics.ID, *metrics.Value), cfg.Key)
 		}
-		logrus.Info(cfg.Key)
 		c.JSON(http.StatusOK, metrics)
 		return
 	default:
@@ -169,11 +162,9 @@ func HandleUpdate(c *gin.Context) {
 	typeM := c.Param("typem")
 	metric := c.Param("metric")
 	value := c.Param("value")
-	logrus.Info(typeM, metric, value)
 	if typeM == "counter" || typeM == "gauge" {
 		err := store.Update(typeM, metric, value)
 		if err != nil {
-			logrus.Info(err)
 			switch {
 			case strings.Contains(err.Error(), `strconv.ParseInt: parsing`) || strings.Contains(err.Error(), `strconv.ParseFloat: parsing`):
 				c.Status(http.StatusBadRequest)

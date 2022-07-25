@@ -82,7 +82,6 @@ func checkTableExist() bool {
 	for rows.Next() {
 		var res string
 		rows.Scan(&res)
-		// logrus.Info(res)
 		if res == TableName {
 			return true
 		}
@@ -114,7 +113,6 @@ func addTabletoDB() {
 	for rows.Next() {
 		var res string
 		rows.Scan(&res)
-		// logrus.Info(res)
 
 	}
 	err = rows.Err()
