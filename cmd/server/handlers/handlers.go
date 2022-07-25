@@ -148,7 +148,7 @@ func HandleValueJSON(c *gin.Context) {
 			metrics.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", metrics.ID, *metrics.Value), cfg.Key)
 		}
 		logrus.Info(cfg.Key)
-		c.JSON(http.StatusOK, value)
+		c.JSON(http.StatusOK, metrics)
 		return
 	default:
 		c.Status(http.StatusBadRequest)

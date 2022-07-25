@@ -44,6 +44,8 @@ func (sm *InMemory) GetGaugeJSON(metricID string) (float64, error) {
 	logrus.Info(val)
 	return val, nil
 }
+
+
 func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter, error) {
 	if value, ok := sm.MapCounter[metric]; !ok {
 		return value, errors.New("not such metric")

@@ -136,98 +136,98 @@ func TestHandleUpdateJSON(t *testing.T) {
 	}
 }
 
-// func TestHandleValueJSON(t *testing.T) {
-// 	cfg = config.Config{
-// 		Key: "hashkey",
-// 	}
-// 	type wantStruct struct {
-// 		statusCode int
-// 	}
-// 	router, s := SetupRouter(cfg)
-// 	s.MapGauge["Alloc"] = types.Gauge(1)
-// 	s.MapCounter["PollCount"] = types.Counter(1)
-// 	SetRepository(s)
-// 	tests := []struct {
-// 		name string
-// 		req  string
-// 		hash string
-// 		body types.Metrics
-// 		want wantStruct
-// 	}{
-// 		{
-// 			name: "PollCount correct",
-// 			req:  "/value/",
-// 			body: types.Metrics{
-// 				ID:    "PollCount",
-// 				MType: "counter",
-// 			},
-// 			want: wantStruct{
-// 				statusCode: 200,
-// 			},
-// 		},
-// 		{
-// 			name: "PollCount incorrect",
-// 			req:  "/value/",
-// 			body: types.Metrics{
-// 				ID:    "FailPollCount",
-// 				MType: "counter",
-// 			},
-// 			want: wantStruct{
-// 				statusCode: 404,
-// 			},
-// 		},
-// 		{
-// 			name: "Alloc correct",
-// 			req:  "/value/",
-// 			body: types.Metrics{
-// 				ID:    "Alloc",
-// 				MType: "gauge",
-// 			},
-// 			want: wantStruct{
-// 				statusCode: 200,
-// 			},
-// 		},
-// 		{
-// 			name: "Alloc incorrect",
-// 			req:  "/value/",
-// 			body: types.Metrics{
-// 				ID:    "FailAlloc",
-// 				MType: "gauge",
-// 			},
-// 			want: wantStruct{
-// 				statusCode: 404,
-// 			},
-// 		},
-// 		{
-// 			name: "Incorrect metric type",
-// 			req:  "/value/",
-// 			body: types.Metrics{
-// 				ID:    "Fail",
-// 				MType: "fail",
-// 			},
-// 			want: wantStruct{
-// 				statusCode: 400,
-// 			},
-// 		},
-// 	}
+func TestHandleValueJSON(t *testing.T) {
+	cfg = config.Config{
+		Key: "hashkey",
+	}
+	type wantStruct struct {
+		statusCode int
+	}
+	router, s := SetupRouter(cfg)
+	s.MapGauge["Alloc"] = types.Gauge(1)
+	s.MapCounter["PollCount"] = types.Counter(1)
+	SetRepository(s)
+	tests := []struct {
+		name string
+		req  string
+		hash string
+		body types.Metrics
+		want wantStruct
+	}{
+		{
+			name: "PollCount correct",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "PollCount",
+				MType: "counter",
+			},
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+		{
+			name: "PollCount incorrect",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "FailPollCount",
+				MType: "counter",
+			},
+			want: wantStruct{
+				statusCode: 404,
+			},
+		},
+		{
+			name: "Alloc correct",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "Alloc",
+				MType: "gauge",
+			},
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+		{
+			name: "Alloc incorrect",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "FailAlloc",
+				MType: "gauge",
+			},
+			want: wantStruct{
+				statusCode: 404,
+			},
+		},
+		{
+			name: "Incorrect metric type",
+			req:  "/value/",
+			body: types.Metrics{
+				ID:    "Fail",
+				MType: "fail",
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			w := httptest.NewRecorder()
-// 			bodyBytes, err := json.Marshal(tt.body)
-// 			require.NoError(t, err)
-// 			bodyReader := bytes.NewReader(bodyBytes)
-// 			request, _ := http.NewRequest(http.MethodPost, tt.req, bodyReader)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			bodyBytes, err := json.Marshal(tt.body)
+			require.NoError(t, err)
+			bodyReader := bytes.NewReader(bodyBytes)
+			request, _ := http.NewRequest(http.MethodPost, tt.req, bodyReader)
 
-// 			router.ServeHTTP(w, request)
-// 			res := w.Result()
+			router.ServeHTTP(w, request)
+			res := w.Result()
 
-// 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
-// 			err = res.Body.Close()
-// 			require.NoError(t, err)
-// 		})
-// 	}
-// }
+			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			err = res.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
 
 // func ExampleHandlePing() {
 
