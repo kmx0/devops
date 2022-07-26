@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kmx0/devops/cmd/server/storage"
+	"github.com/kmx0/devops/internal/storage"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
