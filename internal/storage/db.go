@@ -16,12 +16,13 @@ var DB *sql.DB
 var Conn *pgx.Conn
 var DBName = "metrics"
 var TableName = "praktikum"
+
 // PingDB - Connect to DB, check Exist tables and add new tables
 func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
-	
+
 	var err error
-	
+
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
@@ -41,32 +42,6 @@ func PingDB(ctx context.Context, urlExample string) bool {
 	return true
 }
 
-func checkDBExist() bool {
-	if Conn == nil {
-		logrus.Error("Error nil Conn")
-		return false
-	}
-	listDB := `SELECT datname FROM pg_database;`
-	rows, err := Conn.Query(context.Background(), listDB)
-	if err != nil {
-		logrus.Error(err)
-	}
-	// c, _ := result
-	defer rows.Close()
-	for rows.Next() {
-		var res string
-		rows.Scan(&res)
-		if res == DBName {
-			return true
-		}
-	}
-	err = rows.Err()
-	if err != nil {
-		return false
-	}
-	return false
-}
-
 func checkTableExist() bool {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
@@ -81,9 +56,13 @@ func checkTableExist() bool {
 	defer rows.Close()
 	for rows.Next() {
 		var res string
-		rows.Scan(&res)
-		if res == TableName {
-			return true
+		err := rows.Scan(&res)
+		if err != nil {
+			return false
+		} else {
+			if res == TableName {
+				return true
+			}
 		}
 	}
 	err = rows.Err()
@@ -104,23 +83,12 @@ func addTabletoDB() {
 		Delta numeric,
 		Value double precision
 	);`
-	rows, err := Conn.Query(context.Background(), req)
+	_, err := Conn.Exec(context.Background(), req)
 	if err != nil {
 		logrus.Error(err)
 	}
-	// c, _ := result
-	defer rows.Close()
-	for rows.Next() {
-		var res string
-		rows.Scan(&res)
-
-	}
-	err = rows.Err()
-	if err != nil {
-		logrus.Error(err)
-	}
-
 }
+
 // SaveDataToDB - saving Metrics to DB
 // If metrics already exist on db then update values in DB
 func SaveDataToDB(sm *InMemory) {
@@ -157,6 +125,7 @@ func SaveDataToDB(sm *InMemory) {
 	}
 
 }
+
 // RestoreDataFromDB - restoring Metrics from DB
 // need call where flag Restore = true
 func RestoreDataFromDB(sm *InMemory) {
