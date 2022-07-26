@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#375EAB">
+
+  <title>handlers - Go Documentation Server</title>
+
+<link type="text/css" rel="stylesheet" href="../../../../../../../lib/godoc/style.css">
+
+<script>window.initFuncs = [];</script>
+<script src="../../../../../../../lib/godoc/jquery.js" defer></script>
+
+
+
+<script>var goVersion = "go1.17.1";</script>
+<script src="../../../../../../../lib/godoc/godocs.js" defer></script>
+</head>
+<body>
+
+<div id='lowframe' style="position: fixed; bottom: 0; left: 0; height: 0; width: 100%; border-top: thin solid grey; background-color: white; overflow: auto;">
+...
+</div><!-- #lowframe -->
+
+<div id="topbar" class="wide"><div class="container">
+<div class="top-heading" id="heading-wide"><a href="http://localhost:8080/pkg/">Go Documentation Server</a></div>
+<div class="top-heading" id="heading-narrow"><a href="http://localhost:8080/pkg/">GoDoc</a></div>
+<a href="index.html#" id="menu-button"><span id="menu-button-arrow">&#9661;</span></a>
+<form method="GET" action="http://localhost:8080/search">
+<div id="menu">
+
+<span class="search-box"><input type="search" id="search" name="q" placeholder="Search" aria-label="Search" required><button type="submit"><span><!-- magnifying glass: --><svg width="24" height="24" viewBox="0 0 24 24"><title>submit search</title><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></button></span>
+</div>
+</form>
+
+</div></div>
+
+
+
+<div id="page" class="wide">
+<div class="container">
+
+
+  <h1>
+    Package handlers
+    <span class="text-muted"></span>
+  </h1>
+
+
+
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+<!--
+	Note: Static (i.e., not template-generated) href and id
+	attributes start with "pkg-" to make it impossible for
+	them to conflict with generated attributes (some of which
+	correspond to Go identifiers).
+-->
+
+	<script>
+	document.ANALYSIS_DATA = null;
+	document.CALLGRAPH = null;
+	</script>
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "github.com/kmx0/devops/cmd/server/handlers"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="index.html#pkg-overview" class="overviewLink">Overview</a></dd>
+			<dd><a href="index.html#pkg-index" class="indexLink">Index</a></dd>
+			
+				<dd><a href="index.html#pkg-examples" class="examplesLink">Examples</a></dd>
+			
+			
+			</dl>
+		</div>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="Click to show Overview section">Overview ▹</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="Click to hide Overview section">Overview ▾</h2>
+				
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="Click to show Index section">Index ▹</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="Click to hide Index section">Index ▾</h2>
+
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				
+				<dd><a href="index.html#Compress">func Compress() gin.HandlerFunc</a></dd>
+			
+				
+				<dd><a href="index.html#Decompress">func Decompress() gin.HandlerFunc</a></dd>
+			
+				
+				<dd><a href="index.html#HandleAllValues">func HandleAllValues(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandlePing">func HandlePing(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandleUpdate">func HandleUpdate(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandleUpdateBatchJSON">func HandleUpdateBatchJSON(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandleUpdateJSON">func HandleUpdateJSON(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandleValue">func HandleValue(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandleValueJSON">func HandleValueJSON(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#HandleWithoutID">func HandleWithoutID(c *gin.Context)</a></dd>
+			
+				
+				<dd><a href="index.html#SetRepository">func SetRepository(s repositories.Repository)</a></dd>
+			
+				
+				<dd><a href="index.html#SetupRouter">func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory)</a></dd>
+			
+			
+			
+			</dl>
+			</div><!-- #manual-nav -->
+
+		
+		<div id="pkg-examples">
+			<h3>Examples</h3>
+			<div class="js-expandAll expandAll collapsed">(Expand All)</div>
+			<dl>
+			
+			<dd><a class="exampleLink" href="index.html#example_HandlePing">HandlePing</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>Package files</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/compress.go">compress.go</a>
+			
+				<a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go">handlers.go</a>
+			
+			</span>
+			</p>
+		
+		</div><!-- .expanded -->
+		</div><!-- #pkg-index -->
+
+		
+
+		
+		
+		
+			
+			
+			<h2 id="Compress">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/compress.go?s=569:600#L17">Compress</a>
+				<a class="permalink" href="index.html#Compress">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func Compress() <a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#HandlerFunc">HandlerFunc</a></pre>
+			<p>
+Сжимает отправляемые данные, если клиент поддерживает сжатие
+поле Accept-Encoding.
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="Decompress">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/compress.go?s=1374:1407#L41">Decompress</a>
+				<a class="permalink" href="index.html#Decompress">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func Decompress() <a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#HandlerFunc">HandlerFunc</a></pre>
+			<p>
+Распаковывет принятые данные, в случае если клиент поддерживает сжатие
+поле Accept-Encoding.
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandleAllValues">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=1246:1282#L42">HandleAllValues</a>
+				<a class="permalink" href="index.html#HandleAllValues">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleAllValues(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandleAllValues - Handling Get request by route /
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandlePing">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=1525:1556#L51">HandlePing</a>
+				<a class="permalink" href="index.html#HandlePing">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandlePing(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandlePing - Checking DB connection
+Get Request by route /ping
+</p>
+
+			<div id="example_HandlePing" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code">cfg.DBDSN = &#34;postgres://postgres:postgres@localhost:5432/metrics&#34;
+store = storage.NewInMemory(cfg)
+SetRepository(store)
+
+r := gin.Default()
+
+r.GET(&#34;/ping&#34;, HandlePing)
+
+<span class="comment">// Listen and serve on 0.0.0.0:8080</span>
+go r.Run(&#34;:8181&#34;)
+<span class="comment">// Prepaire HTTP client</span>
+time.Sleep(time.Second * 2)
+client := &amp;http.Client{}
+
+endpoint := &#34;http://127.0.0.1:8181/ping&#34;
+request, err := http.NewRequest(http.MethodGet, endpoint, nil)
+if err != nil {
+    logrus.Error(err)
+}
+
+response, err := client.Do(request)
+if err != nil {
+    fmt.Println(err)
+}
+
+<span class="comment">// печатаем код ответа</span>
+fmt.Println(response.Status)
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">200 OK
+</pre>
+			
+		
+	</div>
+</div>
+
+			
+
+		
+			
+			
+			<h2 id="HandleUpdate">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=3704:3737#L153">HandleUpdate</a>
+				<a class="permalink" href="index.html#HandleUpdate">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleUpdate(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandleUpdate - Post Request by route /update/:typem/:metric/:value
+Its Update Metric value in Memory and save to Disk
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandleUpdateBatchJSON">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=5534:5576#L221">HandleUpdateBatchJSON</a>
+				<a class="permalink" href="index.html#HandleUpdateBatchJSON">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleUpdateBatchJSON(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandleUpdateBatchJSON - like HandleUpdateJSON, but come array metrics
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandleUpdateJSON">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=4530:4567#L183">HandleUpdateJSON</a>
+				<a class="permalink" href="index.html#HandleUpdateJSON">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleUpdateJSON(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandleUpdate - Post Request by route /update/
+In body JSON Metrics struct
+Its Update Metric value in Memory and save to Disk
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandleValue">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=1838:1870#L65">HandleValue</a>
+				<a class="permalink" href="index.html#HandleValue">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleValue(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandleValue - Get Request metric value by route /value/:mtype/:metric
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandleValueJSON">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=2478:2514#L97">HandleValueJSON</a>
+				<a class="permalink" href="index.html#HandleValueJSON">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleValueJSON(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			<p>
+HandleValueJSON - Post Request by route /value/
+returning JSON body
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="HandleWithoutID">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=3507:3543#L147">HandleWithoutID</a>
+				<a class="permalink" href="index.html#HandleWithoutID">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func HandleWithoutID(c *<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Context">Context</a>)</pre>
+			
+			
+			
+
+		
+			
+			
+			<h2 id="SetRepository">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=443:488#L12">SetRepository</a>
+				<a class="permalink" href="index.html#SetRepository">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func SetRepository(s <a href="../../../internal/repositories/index.html">repositories</a>.<a href="../../../internal/repositories/index.html#Repository">Repository</a>)</pre>
+			
+			
+			
+
+		
+			
+			
+			<h2 id="SetupRouter">func <a href="http://localhost:8080/src/github.com/kmx0/devops/cmd/server/handlers/handlers.go?s=505:572#L16">SetupRouter</a>
+				<a class="permalink" href="index.html#SetupRouter">&#xb6;</a>
+				
+				
+			</h2>
+			<pre>func SetupRouter(cf <a href="../../../internal/config/index.html">config</a>.<a href="../../../internal/config/index.html#Config">Config</a>) (*<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/">gin</a>.<a href="http://localhost:8080/pkg/github.com/gin-gonic/gin/#Engine">Engine</a>, *<a href="../storage/index.html">storage</a>.<a href="../storage/index.html#InMemory">InMemory</a>)</pre>
+			
+			
+			
+
+		
+		
+	
+
+	
+
+
+
+
+
+
+
+<div id="footer">
+Build version go1.17.1.<br>
+Except as <a href="https://developers.google.com/site-policies#restrictions">noted</a>,
+the content of this page is licensed under the
+Creative Commons Attribution 3.0 License,
+and code is licensed under a <a href="http://localhost:8080/LICENSE">BSD license</a>.<br>
+<a href="https://golang.org/doc/tos.html">Terms of Service</a> |
+<a href="https://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
+</div>
+
+</div><!-- .container -->
+</div><!-- #page -->
+</body>
+</html>
