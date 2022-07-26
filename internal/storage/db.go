@@ -23,7 +23,7 @@ func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
-		logrus.Errorf("unable to connect to database: %w\n", err)
+		logrus.Errorf("unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 	err = Conn.Ping(context.Background())
@@ -164,7 +164,7 @@ func RestoreDataFromDB(sm *InMemory) {
 		if err == nil {
 			sm.MapGauge[id] = types.Gauge(value)
 		} else {
-			logrus.Errorf("error scanning drom db: %w", err)
+			logrus.Errorf("error scanning drom db: %v", err)
 		}
 	}
 	err = rowsG.Err()

@@ -131,7 +131,7 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 		sm.ConvertMapsToMetrics()
 
 		if err = encoder.Encode(&sm.ArrayJSONMetrics); err != nil {
-			logrus.Errorf("error saving to disk: %w", err)
+			logrus.Errorf("error saving to disk: %v", err)
 		}
 	}
 	if cfg.DBDSN != "" {

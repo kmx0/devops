@@ -84,7 +84,7 @@ func PingDBBeforeProfiling(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %w\n", err)
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 
