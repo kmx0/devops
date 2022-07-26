@@ -4,6 +4,6 @@ import (
 	"testing"
 )
 
-func Test_sendMetrics(t *testing.T) {
+func TestSendMetrics(t *testing.T) {
 
 }

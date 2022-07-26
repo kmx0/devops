@@ -103,20 +103,20 @@ func (sm *InMemory) UpdateJSONBeforeProfiling(cfg config.Config, metrics types.M
 
 	err := crypto.CheckHash(metrics, cfg.Key)
 	if err != nil {
-		return fmt.Errorf("incorrect hash: %v", err)
+		return fmt.Errorf("incorrect hash: %w", err)
 	}
 
 	switch metrics.MType {
 	case "counter":
 		if metrics.Delta == nil {
-			return errors.New("recieved nil pointer on Delta")
+			return errors.New("received nil pointer on Delta")
 		}
 		sm.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
 		logrus.Debugf("%+v", sm.MapCounter)
 
 	case "gauge":
 		if metrics.Value == nil {
-			return errors.New("recieved nil pointer on Value")
+			return errors.New("received nil pointer on Value")
 		}
 		sm.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
 	}
@@ -421,7 +421,7 @@ func TestUpdateJSON(t *testing.T) {
 				Hash:  crypto.Hash(fmt.Sprintf("%s:gauge:%f", "Alloc", helperf), "Failhashkey"),
 			},
 			want: wantStruct{
-				err: fmt.Errorf("incorrect hash: %v", errors.New("hash sum not matched")),
+				err: fmt.Errorf("incorrect hash: %w", errors.New("hash sum not matched")),
 			},
 		},
 		{
@@ -432,7 +432,7 @@ func TestUpdateJSON(t *testing.T) {
 				MType: "gauge",
 			},
 			want: wantStruct{
-				err: errors.New("recieved nil pointer on Value"),
+				err: errors.New("received nil pointer on Value"),
 			},
 		},
 		{
@@ -443,7 +443,7 @@ func TestUpdateJSON(t *testing.T) {
 				MType: "counter",
 			},
 			want: wantStruct{
-				err: errors.New("recieved nil pointer on Delta"),
+				err: errors.New("received nil pointer on Delta"),
 			},
 		},
 	}
@@ -537,16 +537,12 @@ func TestConvertMapsToMetrics(t *testing.T) {
 	s := NewInMemory(config.Config{})
 	s.MapGauge["1"] = types.Gauge(1)
 	s.MapCounter["1"] = types.Counter(1)
-	type wantStruct struct {
-	}
 
 	tests := []struct {
 		name string
-		want wantStruct
 	}{
 		{
 			name: "Simple test 1",
-			want: wantStruct{},
 		},
 	}
 
@@ -576,16 +572,12 @@ func TestConvertMetricsToMaps(t *testing.T) {
 		MType: "counter",
 		Delta: &helperi,
 	})
-	type wantStruct struct {
-	}
 
 	tests := []struct {
 		name string
-		want wantStruct
 	}{
 		{
 			name: "Simple test 1",
-			want: wantStruct{},
 		},
 	}
 

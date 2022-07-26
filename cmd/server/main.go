@@ -9,8 +9,8 @@ import (
 
 	_ "net/http/pprof" // подключаем пакет pprof
 
-	"github.com/kmx0/devops/internal/handlers"
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/handlers"
 	"github.com/sirupsen/logrus"
 )
 

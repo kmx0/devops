@@ -42,8 +42,7 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(3 * time.Second)
-			s := <-signalChanel
-			switch s {
+			switch <-signalChanel {
 			case syscall.SIGINT:
 				logrus.Info("Signal interrupt triggered.")
 				exitChan <- 0
@@ -63,7 +62,7 @@ func main() {
 			}
 		}
 	}()
-	//every cfg.PollInterval seconds will filled RuntimeMemory values
+	// every cfg.PollInterval seconds will filled RuntimeMemory values
 	tickerFill := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for {
@@ -73,7 +72,7 @@ func main() {
 			rm.SetGopsutil()
 		}
 	}()
-	//ever cfg.ReportInterval seconds will sended to server Metrics
+	// ever cfg.ReportInterval seconds will sended to server Metrics
 	tickerSendMetrics := time.NewTicker(cfg.ReportInterval)
 	go func() {
 		for {
@@ -85,7 +84,7 @@ func main() {
 	}()
 
 	exitCode := <-exitChan
-	//stoping ticker
+	// stoping ticker
 	logrus.Warn("Stopping tickerFill")
 	tickerFill.Stop()
 	logrus.Warn("Stopping tickerSendMetrics")

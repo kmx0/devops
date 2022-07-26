@@ -26,25 +26,24 @@ type Config struct {
 	// Фактически соль для хэшироварния данных при передаче
 	// и проверке при приеме
 	Key string `env:"KEY" `
-	//параметры базы данных
+	// параметры базы данных
 	// например:
 	// "postgres://postgres:postgres@localhost:5432/metrics"
 	DBDSN string `env:"DATABASE_DSN"`
 }
 
-// Парсинг значений из environment или опций запуска
+// Парсинг значений из environment или опций запуска.
 func LoadConfig() Config {
 	logrus.SetReportCaller(true)
 	var cfg Config
-	err := env.Parse(&cfg)
-	if err != nil {
+	if err := env.Parse(&cfg); err != nil {
 		logrus.Error(err)
 	}
 	return cfg
 }
 
 // Установка значений по умолчанию для опций, не укзанных при старте
-// для Агента
+// для Агента.
 func ReplaceUnusedInAgent(cfg *Config) {
 	address := flag.String("a", "127.0.0.1:8080", "Address on server for Sending Metrics ")
 	reportInterval := flag.Duration("r", 10000000000, "REPORT_INTERVAL")
@@ -65,8 +64,9 @@ func ReplaceUnusedInAgent(cfg *Config) {
 		cfg.Key = *key
 	}
 }
+
 // Установка значений по умолчанию для опций, не укзанных при старте
-// для Сервера
+// для Сервера.
 func ReplaceUnusedInServer(cfg *Config) {
 	//    = flag.Flag("aa", "Address on Listen").Short('a').Default("127.0.0.1:8080").String()
 	address := flag.String("a", "127.0.0.1:8080", "Address on Listen")

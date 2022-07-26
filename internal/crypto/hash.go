@@ -11,24 +11,21 @@ import (
 
 // CheckHash - проверка хеша при приеме сервером метрик
 func CheckHash(metrics types.Metrics, key string) error {
-
 	if key == "" {
 		return nil
 	}
 	switch metrics.MType {
 	case "counter":
 		if metrics.Delta == nil {
-			return errors.New("recieved nil pointer on Delta")
+			return errors.New("received nil pointer on Delta")
 		}
-
 		hash := Hash(fmt.Sprintf("%s:counter:%d", metrics.ID, *metrics.Delta), key)
 		if hash != metrics.Hash {
 			return errors.New("hash sum not matched")
 		}
-
 	case "gauge":
 		if metrics.Value == nil {
-			return errors.New("recieved nil pointer on Value")
+			return errors.New("received nil pointer on Value")
 		}
 		hash := Hash(fmt.Sprintf("%s:gauge:%f", metrics.ID, *metrics.Value), key)
 		if hash != metrics.Hash {
@@ -36,7 +33,6 @@ func CheckHash(metrics types.Metrics, key string) error {
 		}
 	}
 	return nil
-
 }
 
 // Hash - подписывает алгоритмом HMAC, используя SHA256

@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v4"
@@ -20,22 +19,18 @@ var TableName = "praktikum"
 // PingDB - Connect to DB, check Exist tables and add new tables
 func PingDB(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://postgres:postgres@localhost:5432/metrics"
-
 	var err error
-
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		logrus.Errorf("unable to connect to database: %w\n", err)
 		os.Exit(1)
 	}
-
 	err = Conn.Ping(context.Background())
 	if err != nil {
 		logrus.Error(err)
 		return false
 	}
-
 	if !checkTableExist() {
 		addTabletoDB()
 	}
@@ -52,17 +47,15 @@ func checkTableExist() bool {
 	if err != nil {
 		logrus.Error(err)
 	}
-	// c, _ := result
 	defer rows.Close()
 	for rows.Next() {
 		var res string
 		err := rows.Scan(&res)
 		if err != nil {
 			return false
-		} else {
-			if res == TableName {
-				return true
-			}
+		} else if res == TableName {
+			return true
+
 		}
 	}
 	err = rows.Err()
@@ -171,7 +164,7 @@ func RestoreDataFromDB(sm *InMemory) {
 		if err == nil {
 			sm.MapGauge[id] = types.Gauge(value)
 		} else {
-			logrus.Errorf("error scanning drom db: %v", err)
+			logrus.Errorf("error scanning drom db: %w", err)
 		}
 	}
 	err = rowsG.Err()

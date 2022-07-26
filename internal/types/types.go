@@ -21,40 +21,38 @@ type (
 	Counter int64
 	// RunMetrics - strcut for filling metrics from Memory Stats
 	RunMetrics struct {
-		Alloc         Gauge
-		BuckHashSys   Gauge
-		Frees         Gauge
-		GCCPUFraction Gauge
-		GCSys         Gauge
-		HeapAlloc     Gauge
-		HeapIdle      Gauge
-		HeapInuse     Gauge
-		HeapObjects   Gauge
-		HeapReleased  Gauge
-		HeapSys       Gauge
-		LastGC        Gauge
-		Lookups       Gauge
-		MCacheInuse   Gauge
-		MCacheSys     Gauge
-		MSpanInuse    Gauge
-		MSpanSys      Gauge
-		Mallocs       Gauge
-		NextGC        Gauge
-		NumForcedGC   Gauge
-		NumGC         Gauge
-		OtherSys      Gauge
-		PauseTotalNs  Gauge
-		StackInuse    Gauge
-		StackSys      Gauge
-		Sys           Gauge
-		TotalAllo     Gauge
-		PollCount     Counter
-		RandomValue   Gauge
-		//14 incr===
+		Alloc           Gauge
+		BuckHashSys     Gauge
+		Frees           Gauge
+		GCCPUFraction   Gauge
+		GCSys           Gauge
+		HeapAlloc       Gauge
+		HeapIdle        Gauge
+		HeapInuse       Gauge
+		HeapObjects     Gauge
+		HeapReleased    Gauge
+		HeapSys         Gauge
+		LastGC          Gauge
+		Lookups         Gauge
+		MCacheInuse     Gauge
+		MCacheSys       Gauge
+		MSpanInuse      Gauge
+		MSpanSys        Gauge
+		Mallocs         Gauge
+		NextGC          Gauge
+		NumForcedGC     Gauge
+		NumGC           Gauge
+		OtherSys        Gauge
+		PauseTotalNs    Gauge
+		StackInuse      Gauge
+		StackSys        Gauge
+		Sys             Gauge
+		TotalAllo       Gauge
+		PollCount       Counter
+		RandomValue     Gauge
 		TotalMemory     Gauge
 		FreeMemory      Gauge
 		CPUutilization1 Gauge
-		//
 
 		sync.RWMutex
 		MapMetrics map[string]interface{}
@@ -85,7 +83,7 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 	defer rm.Unlock()
 	i := 0
 	for k, v := range rm.MapMetrics {
-		ty := strings.ToLower(reflect.TypeOf(v).Name()) //тип метрики
+		ty := strings.ToLower(reflect.TypeOf(v).Name()) // тип метрики
 		switch ty {
 		case "counter":
 			vc, ok := v.(Counter)
@@ -97,7 +95,7 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 
 			metrics[i] = Metrics{
 				ID:    k,
-				MType: strings.ToLower(reflect.TypeOf(v).Name()),
+				MType: "counter",
 				Delta: &vi64,
 			}
 		case "gauge":
@@ -109,7 +107,7 @@ func (rm *RunMetrics) GetMetrics() (metricsForBody []Metrics) {
 			vf64 := float64(vg)
 			metrics[i] = Metrics{
 				ID:    k,
-				MType: strings.ToLower(reflect.TypeOf(v).Name()),
+				MType: "gauge",
 				Value: &vf64,
 			}
 

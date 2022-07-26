@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kmx0/devops/internal/storage"
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/storage"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -333,7 +333,7 @@ func TestHandleAllValues(t *testing.T) {
 
 	response, err := client.Do(request)
 	if err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 	}
 	defer response.Body.Close()
 

@@ -25,7 +25,7 @@ func TestCheckHash(t *testing.T) {
 				MType: "counter",
 			},
 			key:  "hashkey",
-			want: errors.New("recieved nil pointer on Delta"),
+			want: errors.New("received nil pointer on Delta"),
 		},
 		{
 			name: "Gauge nil pointer",
@@ -34,7 +34,7 @@ func TestCheckHash(t *testing.T) {
 				MType: "gauge",
 			},
 			key:  "hashkey",
-			want: errors.New("recieved nil pointer on Value"),
+			want: errors.New("received nil pointer on Value"),
 		},
 		{
 			name: "Gauge empty key",

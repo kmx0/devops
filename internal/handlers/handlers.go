@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	"github.com/kmx0/devops/internal/storage"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/crypto"
 	"github.com/kmx0/devops/internal/repositories"
+	"github.com/kmx0/devops/internal/storage"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 )
@@ -204,18 +204,16 @@ func HandleUpdateJSON(c *gin.Context) {
 			logrus.Error(err)
 
 			switch {
-			case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`):
+			case strings.Contains(err.Error(), `received nil pointer on Delta`) || strings.Contains(err.Error(), `received nil pointer on Value`):
 				c.Status(http.StatusBadRequest)
 			case strings.Contains(err.Error(), `hash sum not matched`):
 				c.Status(http.StatusBadRequest)
 			default:
 				c.Status(http.StatusInternalServerError)
 			}
-		} else {
+		} else if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
+			store.SaveToDisk(cfg)
 
-			if cfg.StoreInterval == 0 || cfg.DBDSN != "" {
-				store.SaveToDisk(cfg)
-			}
 		}
 
 	} else {
@@ -242,7 +240,7 @@ func HandleUpdateBatchJSON(c *gin.Context) {
 			if err != nil {
 				logrus.Error(err)
 				switch {
-				case strings.Contains(err.Error(), `recieved nil pointer on Delta`) || strings.Contains(err.Error(), `recieved nil pointer on Value`) || strings.Contains(err.Error(), `hash sum not matched`):
+				case strings.Contains(err.Error(), `received nil pointer on Delta`) || strings.Contains(err.Error(), `received nil pointer on Value`) || strings.Contains(err.Error(), `hash sum not matched`):
 					c.Status(http.StatusBadRequest)
 				default:
 					c.Status(http.StatusInternalServerError)

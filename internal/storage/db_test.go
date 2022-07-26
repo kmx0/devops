@@ -56,8 +56,6 @@ func BenchmarkSaveDatatoDB(b *testing.B) {
 	sm.MapGauge["2"] = types.Gauge(2)
 	sm.MapGauge["3"] = types.Gauge(3)
 	sm.MapGauge["4"] = types.Gauge(4)
-
-
 	b.Run("SaveDataToDB: Before profiling", func(b *testing.B) {
 
 		for i := 0; i < b.N; i++ {
@@ -86,7 +84,7 @@ func PingDBBeforeProfiling(ctx context.Context, urlExample string) bool {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %w\n", err)
 		os.Exit(1)
 	}
 

@@ -67,20 +67,20 @@ func (sm *InMemory) UpdateJSON(hashkey string, metrics types.Metrics) error {
 	if hashkey != "" {
 		err := crypto.CheckHash(metrics, hashkey)
 		if err != nil {
-			return fmt.Errorf("incorrect hash: %v", err)
+			return fmt.Errorf("incorrect hash: %w", err)
 		}
 	}
 	switch metrics.MType {
 	case "counter":
 		if metrics.Delta == nil {
-			return errors.New("recieved nil pointer on Delta")
+			return errors.New("received nil pointer on Delta")
 		}
 		sm.MapCounter[metrics.ID] += types.Counter(*(metrics).Delta)
 		logrus.Debugf("%+v", sm.MapCounter)
 
 	case "gauge":
 		if metrics.Value == nil {
-			return errors.New("recieved nil pointer on Value")
+			return errors.New("received nil pointer on Value")
 		}
 		sm.MapGauge[metrics.ID] = types.Gauge(*(metrics).Value)
 	}
@@ -130,9 +130,8 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 		encoder := json.NewEncoder(file)
 		sm.ConvertMapsToMetrics()
 
-		err = encoder.Encode(&sm.ArrayJSONMetrics)
-		if err != nil {
-			logrus.Errorf("error saving to disk: %v", err)
+		if err = encoder.Encode(&sm.ArrayJSONMetrics); err != nil {
+			logrus.Errorf("error saving to disk: %w", err)
 		}
 	}
 	if cfg.DBDSN != "" {
@@ -200,8 +199,9 @@ func (sm *InMemory) ConvertMapsToMetrics() {
 		metrics[i] = types.Metrics{
 			ID:    k,
 			MType: "counter",
-			// MType: strings.ToLower(reflect.TypeOf(v).Name()), // исправлен после профилирования
 			Delta: &vi64,
+			Value: new(float64),
+			Hash:  "",
 		}
 		i++
 	}
