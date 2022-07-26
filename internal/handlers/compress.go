@@ -59,7 +59,6 @@ func Decompress() gin.HandlerFunc {
 			reader = gz
 			defer gz.Close()
 		} else {
-			reader = c.Request.Body
 			return
 		}
 		body, err := io.ReadAll(reader)

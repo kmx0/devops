@@ -134,13 +134,13 @@ func BenchmarkCheckHash(b *testing.B) {
 
 	b.Run("CheckHash: Before profiling ", func(b *testing.B) {
 		for i := 0; i < b.N*100000; i++ {
-			sm.UpdateJSONBeforeProfiling(cfg, metrics)
+			_ = sm.UpdateJSONBeforeProfiling(cfg, metrics)
 		}
 	})
 	b.Run("CheckHash: After Profiling ", func(b *testing.B) {
 
 		for i := 0; i < b.N*100000; i++ {
-			sm.UpdateJSON(cfg.Key, metrics)
+			_ = sm.UpdateJSON(cfg.Key, metrics)
 		}
 
 	})

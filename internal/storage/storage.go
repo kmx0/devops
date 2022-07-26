@@ -43,7 +43,6 @@ func (sm *InMemory) GetGaugeJSON(metricID string) (float64, error) {
 	return val, nil
 }
 
-
 func (sm *InMemory) GetCounter(metricType string, metric string) (types.Counter, error) {
 	if value, ok := sm.MapCounter[metric]; !ok {
 		return value, errors.New("not such metric")
@@ -131,7 +130,10 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 		encoder := json.NewEncoder(file)
 		sm.ConvertMapsToMetrics()
 
-		encoder.Encode(&sm.ArrayJSONMetrics)
+		err = encoder.Encode(&sm.ArrayJSONMetrics)
+		if err != nil {
+			logrus.Errorf("error saving to disk: %v", err)
+		}
 	}
 	if cfg.DBDSN != "" {
 		//saving to db

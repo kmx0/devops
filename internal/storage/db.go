@@ -146,8 +146,12 @@ func RestoreDataFromDB(sm *InMemory) {
 	for rowsC.Next() {
 		var id string
 		var delta int64
-		rowsC.Scan(&id, &delta)
-		sm.MapCounter[id] = types.Counter(delta)
+		err := rowsC.Scan(&id, &delta)
+		if err == nil {
+			sm.MapCounter[id] = types.Counter(delta)
+		} else {
+			logrus.Errorf("error scanning drom db: %v", err)
+		}
 	}
 
 	err = rowsC.Err()
@@ -163,8 +167,12 @@ func RestoreDataFromDB(sm *InMemory) {
 	for rowsG.Next() {
 		var id string
 		var value float64
-		rowsG.Scan(&id, &value)
-		sm.MapGauge[id] = types.Gauge(value)
+		err := rowsG.Scan(&id, &value)
+		if err == nil {
+			sm.MapGauge[id] = types.Gauge(value)
+		} else {
+			logrus.Errorf("error scanning drom db: %v", err)
+		}
 	}
 	err = rowsG.Err()
 	if err != nil {
