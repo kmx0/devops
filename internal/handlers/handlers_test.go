@@ -146,7 +146,7 @@ func TestHandleUpdateJSON(t *testing.T) {
 	type wantStruct struct {
 		statusCode int
 	}
-	var helperf float64 = 1.0
+	var helperf float64 = 1
 	// var helperi int = 1.0
 	router, _ := SetupRouter(cfg)
 	tests := []struct {
@@ -239,7 +239,7 @@ func TestHandleUpdateBatchJSON(t *testing.T) {
 	type wantStruct struct {
 		statusCode int
 	}
-	var helperf float64 = 1.0
+	var helperf float64 = 1
 	// var helperi int = 1.0
 	router, _ := SetupRouter(cfg)
 	tests := []struct {
