@@ -589,3 +589,63 @@ func TestConvertMetricsToMaps(t *testing.T) {
 		})
 	}
 }
+
+func TestRestoreFromDisk(t *testing.T) {
+	cfg := config.LoadConfig()
+	cfg.DBDSN = "postgres://postgres:postgres@localhost:5432/metrics"
+
+	s := NewInMemory(cfg)
+	var helperf float64 = 1
+	var helperi int64 = 1
+	
+	s.ArrayJSONMetrics = append(s.ArrayJSONMetrics, types.Metrics{
+		ID:    "Alloc",
+		MType: "gauge",
+		Value: &helperf,
+	})
+
+	s.ArrayJSONMetrics = append(s.ArrayJSONMetrics, types.Metrics{
+		ID:    "PollCount",
+		MType: "counter",
+		Delta: &helperi,
+	})
+
+	type wantStruct struct {
+		err error
+	}
+
+	tests := []struct {
+		name string
+
+		want wantStruct
+	}{
+		{
+			name: "Correct test Gauge",
+
+			want: wantStruct{
+				err: nil,
+			},
+		},
+		{
+			name: "Correct test Counter",
+
+			want: wantStruct{
+				err: nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// metricType string, metric string, value string
+			err := s.RestoreFromDisk(cfg)
+
+			if err != nil {
+				assert.Equal(t, strings.Contains(err.Error(), tt.want.err.Error()), true)
+
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

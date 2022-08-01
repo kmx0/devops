@@ -78,7 +78,7 @@ func main() {
 		for {
 			<-tickerSendMetrics.C
 			now := time.Now()
-			sendMetricsJSON(cfg)
+			SendMetricsJSON(cfg)
 			logrus.Info(time.Since(now))
 		}
 	}()
@@ -95,7 +95,7 @@ func main() {
 }
 
 //sending Metrics use JSON format
-func sendMetricsJSON(cfg config.Config) {
+func SendMetricsJSON(cfg config.Config) error {
 	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
 	client := &http.Client{}
@@ -115,7 +115,7 @@ func sendMetricsJSON(cfg config.Config) {
 		errors.Is(nil, err)
 		if err != nil {
 			logrus.Error(err)
-			os.Exit(1)
+			return err
 		}
 
 		request.Header.Add("Content-Type", "application/json")
@@ -133,19 +133,22 @@ func sendMetricsJSON(cfg config.Config) {
 		if err != nil {
 			logrus.Error("Error on Reading body")
 			logrus.Error(err)
-			// os.Exit(1)
 			continue
 		}
 	}
+	return nil
 }
 
 // add Hash to JSON Metrics
-func AddHash(key string, metricsP *types.Metrics) {
+func AddHash(key string, metricsP *types.Metrics) error {
 
 	switch metricsP.MType {
 	case "counter":
 		metricsP.Hash = crypto.Hash(fmt.Sprintf("%s:counter:%d", metricsP.ID, *metricsP.Delta), key)
+		return nil
 	case "gauge":
 		metricsP.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", metricsP.ID, *metricsP.Value), key)
+		return nil
 	}
+	return errors.New("unknown metric type")
 }

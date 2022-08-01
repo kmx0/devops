@@ -118,12 +118,12 @@ func (sm *InMemory) Update(metricType string, metric string, value string) error
 }
 
 // SaveToDisk - saving metrics from Maps to file or DB
-func (sm *InMemory) SaveToDisk(cfg config.Config) {
+func (sm *InMemory) SaveToDisk(cfg config.Config) error {
 	if cfg.DBDSN == "" {
 		file, err := os.OpenFile(cfg.StoreFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 		if err != nil {
 			logrus.Error(err)
-			return
+			return err
 		}
 		defer file.Close()
 
@@ -139,27 +139,34 @@ func (sm *InMemory) SaveToDisk(cfg config.Config) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		PingDB(ctx, cfg.DBDSN)
-		SaveDataToDB(sm)
+		err := SaveDataToDB(sm)
+		if err != nil {
+			return err
+		}
 		logrus.Info("Saving to DB")
-	}
 
+	}
+	return nil
 }
 
 // RestoreFromDisk - Get Metrics from storage before start server, if flag Restore = true
-func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
+func (sm *InMemory) RestoreFromDisk(cfg config.Config) error {
 	if cfg.DBDSN == "" {
 		file, err := os.OpenFile(cfg.StoreFile, os.O_RDONLY|os.O_CREATE, 0777)
 		if err != nil {
 			logrus.Error(err)
-			return
+			return err
 		}
 		defer file.Close()
 		decoder := json.NewDecoder(file)
 
+		if decoder == nil {
+			return errors.New("file is empty")
+		}
 		err = decoder.Decode(&sm.ArrayJSONMetrics)
 		if err != nil {
 			logrus.Error(err)
-			return
+			return err
 		}
 		sm.ConvertMetricsToMaps()
 	}
@@ -168,11 +175,17 @@ func (sm *InMemory) RestoreFromDisk(cfg config.Config) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		// не забываем освободить ресурс
 		defer cancel()
-		PingDB(ctx, cfg.DBDSN)
-		RestoreDataFromDB(sm)
-		logrus.Info("Restoring from DB")
+		if PingDB(ctx, cfg.DBDSN) {
+			err := RestoreDataFromDB(sm)
+			if err != nil {
+				return err
+			}
+			logrus.Info("Restoring from DB")
+		} else {
+			return errors.New("can not connect to DB")
+		}
 	}
-
+	return nil
 }
 
 // Constructor for InMemory

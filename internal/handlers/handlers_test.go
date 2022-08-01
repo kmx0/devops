@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,12 +15,51 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/crypto"
 	"github.com/kmx0/devops/internal/storage"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestHandlePing(t *testing.T) {
+	s := storage.NewInMemory(config.Config{})
+	SetRepository(s)
+	type wantStruct struct {
+		statusCode int
+	}
+
+	router, _ := SetupRouter(config.Config{})
+	tests := []struct {
+		name string
+		req  string
+		want wantStruct
+	}{
+
+		{
+			name: "fail ping ",
+			req:  "/ping",
+			want: wantStruct{
+				statusCode: 500,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			w := httptest.NewRecorder()
+			request, _ := http.NewRequest(http.MethodGet, tt.req, nil)
+			router.ServeHTTP(w, request)
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			err := res.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
 
 func TestHandleUpdate(t *testing.T) {
 	s := storage.NewInMemory(config.Config{})
@@ -69,14 +109,25 @@ func TestHandleUpdate(t *testing.T) {
 				statusCode: 400,
 			},
 		},
+		{
+			name: "update_not implemented type",
+			req:  "/update/gaug/testGauge/none",
+			want: wantStruct{
+				statusCode: 501,
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
 			w := httptest.NewRecorder()
-			request, _ := http.NewRequest(http.MethodPost, tt.req, nil)
+			// w.HeaderMap.Add("Accept-Encoding", "gzip")
+			// h := w.Header()
+			// h.Add("Accept-Encoding", "gzip")
 
+			request, _ := http.NewRequest(http.MethodPost, tt.req, nil)
+			request.Header.Del("Accept-Encoding")
 			router.ServeHTTP(w, request)
 			res := w.Result()
 
@@ -87,13 +138,17 @@ func TestHandleUpdate(t *testing.T) {
 	}
 }
 func TestHandleUpdateJSON(t *testing.T) {
-	s := storage.NewInMemory(config.Config{})
+	cfg = config.Config{
+		Key: "hashkey",
+	}
+	s := storage.NewInMemory(cfg)
 	SetRepository(s)
 	type wantStruct struct {
 		statusCode int
 	}
-
-	router, _ := SetupRouter(config.Config{})
+	var helperf float64 = 1.0
+	// var helperi int = 1.0
+	router, _ := SetupRouter(cfg)
 	tests := []struct {
 		name string
 		req  string
@@ -106,6 +161,158 @@ func TestHandleUpdateJSON(t *testing.T) {
 			body: types.Metrics{},
 			want: wantStruct{
 				statusCode: 501,
+			},
+		},
+		{
+			name: "updateJSON_counter",
+			req:  "/update/",
+			body: types.Metrics{
+				MType: "counter",
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+		{
+			name: "updateJSON_gauge",
+			req:  "/update/",
+			body: types.Metrics{
+				MType: "gauge",
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+		{
+			name: "updateJSON_gauge_Alloc",
+			req:  "/update/",
+			body: types.Metrics{
+				MType: "gauge",
+				Hash:  "hashtest",
+				ID:    "Alloc",
+				Value: &helperf,
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+		{
+			name: "updateJSON_gauge_Alloc",
+			req:  "/update/",
+			body: types.Metrics{
+				MType: "gauge",
+				Hash:  crypto.Hash(fmt.Sprintf("%s:gauge:%f", "Alloc", helperf), cfg.Key),
+				ID:    "Alloc",
+				Value: &helperf,
+			},
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			w := httptest.NewRecorder()
+			bodyBytes, err := json.Marshal(tt.body)
+			require.NoError(t, err)
+			bodyReader := bytes.NewReader(bodyBytes)
+			request, _ := http.NewRequest(http.MethodPost, tt.req, bodyReader)
+
+			router.ServeHTTP(w, request)
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			err = res.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestHandleUpdateBatchJSON(t *testing.T) {
+	cfg = config.Config{
+		Key: "hashkey",
+	}
+	s := storage.NewInMemory(cfg)
+	SetRepository(s)
+	type wantStruct struct {
+		statusCode int
+	}
+	var helperf float64 = 1.0
+	// var helperi int = 1.0
+	router, _ := SetupRouter(cfg)
+	tests := []struct {
+		name string
+		req  string
+		body []types.Metrics
+		want wantStruct
+	}{
+		{
+			name: "updatesBatchFailJSON_empty",
+			req:  "/updates/",
+			body: []types.Metrics{
+				{},
+			},
+			want: wantStruct{
+				statusCode: 501,
+			},
+		},
+		{
+			name: "updatesBatchJSON_empty",
+			req:  "/updates/",
+			body: []types.Metrics{},
+			want: wantStruct{
+				statusCode: 200,
+			},
+		},
+		{
+			name: "updatesBatchJSON_counter",
+			req:  "/updates/",
+			body: []types.Metrics{
+				{MType: "counter"},
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+		{
+			name: "updatesBatchJSON_gauge",
+			req:  "/updates/",
+			body: []types.Metrics{
+				{MType: "gauge"},
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+		{
+			name: "updateJSON_gauge_Alloc_fail_hash",
+			req:  "/updates/",
+			body: []types.Metrics{
+				{MType: "gauge",
+					Hash:  "hashtest",
+					ID:    "Alloc",
+					Value: &helperf},
+			},
+			want: wantStruct{
+				statusCode: 400,
+			},
+		},
+		{
+			name: "updatesBatchJSON_gauge_Alloc",
+			req:  "/updates/",
+			body: []types.Metrics{
+				{
+
+					MType: "gauge",
+					Hash:  crypto.Hash(fmt.Sprintf("%s:gauge:%f", "Alloc", helperf), cfg.Key),
+					ID:    "Alloc",
+					Value: &helperf,
+				},
+			},
+			want: wantStruct{
+				statusCode: 200,
 			},
 		},
 	}
@@ -301,9 +508,13 @@ func (t *testPostgres) GetCurrentMetrics() (gm map[string]types.Gauge, cm map[st
 	cm["PollCount2"] = types.Counter(14)
 	return
 }
-func (t *testPostgres) RestoreFromDisk(cfg config.Config) {}
+func (t *testPostgres) RestoreFromDisk(cfg config.Config) error {
+	return nil
+}
 
-func (t *testPostgres) SaveToDisk(cfg config.Config) {}
+func (t *testPostgres) SaveToDisk(cfg config.Config) error {
+	return nil
+}
 
 func TestHandleAllValues(t *testing.T) {
 
@@ -330,14 +541,26 @@ func TestHandleAllValues(t *testing.T) {
 	if err != nil {
 		logrus.Error(err)
 	}
-
+	// request.Header.Add("Accept-Encoding", "gzip")
+	request.Header.Add("Accept-Encoding", "gzip")
 	response, err := client.Do(request)
-	if err != nil {
-		logrus.Error(err)
-	}
-	defer response.Body.Close()
+	assert.Equal(t, err, nil)
+	var reader io.Reader
 
-	payload, err := io.ReadAll(response.Body)
+	// if strings.Contains(response.Header("Content-Encoding"), "gzip") {
+	reader = response.Body
+	defer response.Body.Close()
+	if !response.Uncompressed {
+
+		gz, err := gzip.NewReader(response.Body)
+		assert.Equal(t, err, nil)
+		defer gz.Close()
+		reader = gz
+
+	}
+
+	payload, err := io.ReadAll(reader)
+	assert.Equal(t, err, nil)
 
 	gm := make(map[string]types.Gauge)
 	cm := make(map[string]types.Counter)

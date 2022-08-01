@@ -16,6 +16,6 @@ type Repository interface {
 	GetCounter(metric, name string) (types.Counter, error)
 	GetCounterJSON(string) (int64, error)
 	GetCurrentMetrics() (map[string]types.Gauge, map[string]types.Counter, error)
-	RestoreFromDisk(cfg config.Config)
-	SaveToDisk(cfg config.Config)
+	RestoreFromDisk(cfg config.Config) error
+	SaveToDisk(cfg config.Config) error
 }

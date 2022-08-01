@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"os"
+	"errors"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/kmx0/devops/internal/types"
@@ -24,20 +24,20 @@ func PingDB(ctx context.Context, urlExample string) bool {
 	Conn, err = pgx.Connect(context.Background(), urlExample)
 	if err != nil {
 		logrus.Errorf("unable to connect to database: %v\n", err)
-		os.Exit(1)
+		return false
 	}
 	err = Conn.Ping(context.Background())
 	if err != nil {
 		logrus.Error(err)
 		return false
 	}
-	if !checkTableExist() {
-		addTabletoDB()
+	if !CheckTableExist() {
+		AddTabletoDB()
 	}
 	return true
 }
 
-func checkTableExist() bool {
+func CheckTableExist() bool {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
 		return false
@@ -65,10 +65,10 @@ func checkTableExist() bool {
 	return false
 }
 
-func addTabletoDB() {
+func AddTabletoDB() bool {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
-		return
+		return false
 	}
 	req := `CREATE TABLE praktikum (
 		ID varchar(255) UNIQUE,
@@ -80,14 +80,15 @@ func addTabletoDB() {
 	if err != nil {
 		logrus.Error(err)
 	}
+	return true
 }
 
 // SaveDataToDB - saving Metrics to DB
 // If metrics already exist on db then update values in DB
-func SaveDataToDB(sm *InMemory) {
+func SaveDataToDB(sm *InMemory) error {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
-		return
+		return errors.New("error nil Conn")
 	}
 	sm.Lock()
 	defer sm.Unlock()
@@ -116,15 +117,15 @@ func SaveDataToDB(sm *InMemory) {
 			}
 		}
 	}
-
+	return nil
 }
 
 // RestoreDataFromDB - restoring Metrics from DB
 // need call where flag Restore = true
-func RestoreDataFromDB(sm *InMemory) {
+func RestoreDataFromDB(sm *InMemory) error {
 	if Conn == nil {
 		logrus.Error("Error nil Conn")
-		return
+		return errors.New("error nil Conn")
 	}
 	sm.Lock()
 	defer sm.Unlock()
@@ -133,7 +134,7 @@ func RestoreDataFromDB(sm *InMemory) {
 	rowsC, err := Conn.Query(ctx, listCounter)
 	if err != nil {
 		logrus.Error(err)
-		return
+		return err
 	}
 	defer rowsC.Close()
 	for rowsC.Next() {
@@ -144,6 +145,7 @@ func RestoreDataFromDB(sm *InMemory) {
 			sm.MapCounter[id] = types.Counter(delta)
 		} else {
 			logrus.Errorf("error scanning drom db: %v", err)
+			return err
 		}
 	}
 
@@ -170,5 +172,7 @@ func RestoreDataFromDB(sm *InMemory) {
 	err = rowsG.Err()
 	if err != nil {
 		logrus.Error(err)
+		return err
 	}
+	return nil
 }

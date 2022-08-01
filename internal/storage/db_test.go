@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
+	"gotest.tools/assert"
 )
 
 // const (
@@ -94,8 +96,8 @@ func PingDBBeforeProfiling(ctx context.Context, urlExample string) bool {
 		return false
 	}
 
-	if !checkTableExist() {
-		addTabletoDB()
+	if !CheckTableExist() {
+		AddTabletoDB()
 	}
 	return true
 }
@@ -119,8 +121,8 @@ func PingDBProfiled(ctx context.Context, urlExample string) bool {
 		return false
 	}
 
-	if !checkTableExist() {
-		addTabletoDB()
+	if !CheckTableExist() {
+		AddTabletoDB()
 	}
 	return true
 }
@@ -205,4 +207,147 @@ func SaveDataToDBProfiled(sm *InMemory) {
 		}
 	}
 
+}
+
+func TestPingDB(t *testing.T) {
+
+	type wantStruct struct {
+		res bool
+	}
+
+	tests := []struct {
+		name string
+		want wantStruct
+	}{
+		{
+			name: "Fail",
+			want: wantStruct{
+				res: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := PingDB(context.Background(), "")
+			// PingDB(ctx context.Context, urlExample string) bool
+
+			assert.Equal(t, tt.want.res, res)
+
+		})
+	}
+}
+
+func TestCheckTableExist(t *testing.T) {
+
+	type wantStruct struct {
+		res bool
+	}
+
+	tests := []struct {
+		name string
+		want wantStruct
+	}{
+		{
+			name: "Fail",
+			want: wantStruct{
+				res: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := CheckTableExist()
+			// PingDB(ctx context.Context, urlExample string) bool
+
+			assert.Equal(t, tt.want.res, res)
+
+		})
+	}
+}
+func TestAddTabletoDB(t *testing.T) {
+
+	type wantStruct struct {
+		res bool
+	}
+
+	tests := []struct {
+		name string
+		want wantStruct
+	}{
+		{
+			name: "Fail",
+			want: wantStruct{
+				res: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := AddTabletoDB()
+			// PingDB(ctx context.Context, urlExample string) bool
+
+			assert.Equal(t, tt.want.res, res)
+
+		})
+	}
+}
+
+func TestSaveDataToDB(t *testing.T) {
+
+	cfg := config.Config{}
+	sm := NewInMemory(cfg)
+	type wantStruct struct {
+		err error
+	}
+
+	tests := []struct {
+		name string
+		want wantStruct
+	}{
+		{
+			name: "Fail",
+			want: wantStruct{
+				err: errors.New("error nil Conn"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := SaveDataToDB(sm)
+			assert.Equal(t, tt.want.err.Error(), err.Error())
+		})
+	}
+}
+
+func TestRestoreDataFromDB(t *testing.T) {
+	cfg := config.Config{}
+	sm := NewInMemory(cfg)
+	type wantStruct struct {
+		err error
+	}
+
+	tests := []struct {
+		name string
+		want wantStruct
+	}{
+		{
+			name: "Fail",
+			want: wantStruct{
+				err: errors.New("error nil Conn"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := RestoreDataFromDB(sm)
+			if err != nil {
+				assert.Equal(t, tt.want.err.Error(), err.Error())
+			}
+		})
+	}
 }
