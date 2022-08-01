@@ -617,26 +617,19 @@ func TestRestoreFromDisk(t *testing.T) {
 		cfg  config.Config
 		want wantStruct
 	}{
-		// {
-		// 	name: "Correct test Gauge",
-
-		// 	want: wantStruct{
-		// 		err: nil,
-		// 	},
-		// },
 		{
 			name: "Fail DBDSN",
 			cfg:  config.Config{DBDSN: "test"},
 			want: wantStruct{},
 		},
 		{
-			name: "EOF",
+			name: "Fail file",
 			cfg:  config.Config{},
 			want: wantStruct{},
 		},
 		{
-			name: "Fail file",
-			cfg:  config.Config{StoreFile: "/tmp/devops-metrics-db.json"},
+			name: "EOF",
+			cfg:  config.Config{StoreFile: "/tmp/test1.json"},
 			want: wantStruct{},
 		},
 	}
