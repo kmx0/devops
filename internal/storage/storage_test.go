@@ -591,13 +591,12 @@ func TestConvertMetricsToMaps(t *testing.T) {
 }
 
 func TestRestoreFromDisk(t *testing.T) {
-	cfg := config.LoadConfig()
-	cfg.DBDSN = "postgres://postgres:postgres@localhost:5432/metrics"
+	cfg := config.Config{}
 
 	s := NewInMemory(cfg)
 	var helperf float64 = 1
 	var helperi int64 = 1
-	
+
 	s.ArrayJSONMetrics = append(s.ArrayJSONMetrics, types.Metrics{
 		ID:    "Alloc",
 		MType: "gauge",
@@ -611,41 +610,44 @@ func TestRestoreFromDisk(t *testing.T) {
 	})
 
 	type wantStruct struct {
-		err error
 	}
 
 	tests := []struct {
 		name string
-
+		cfg  config.Config
 		want wantStruct
 	}{
-		{
-			name: "Correct test Gauge",
+		// {
+		// 	name: "Correct test Gauge",
 
-			want: wantStruct{
-				err: nil,
-			},
+		// 	want: wantStruct{
+		// 		err: nil,
+		// 	},
+		// },
+		{
+			name: "Fail DBDSN",
+			cfg:  config.Config{DBDSN: "test"},
+			want: wantStruct{},
 		},
 		{
-			name: "Correct test Counter",
-
-			want: wantStruct{
-				err: nil,
-			},
+			name: "EOF",
+			cfg:  config.Config{},
+			want: wantStruct{},
+		},
+		{
+			name: "Fail file",
+			cfg:  config.Config{StoreFile: "/tmp/devops-metrics-db.json"},
+			want: wantStruct{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// metricType string, metric string, value string
-			err := s.RestoreFromDisk(cfg)
+			err := s.RestoreFromDisk(tt.cfg)
 
-			if err != nil {
-				assert.Equal(t, strings.Contains(err.Error(), tt.want.err.Error()), true)
+			require.Error(t, err)
 
-			} else {
-				require.NoError(t, err)
-			}
 		})
 	}
 }
