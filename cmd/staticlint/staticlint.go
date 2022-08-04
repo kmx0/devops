@@ -48,7 +48,7 @@ import (
 )
 
 var (
-	allAnalyzers = []*analysis.Analyzer{
+	goCroticAnalyzers = []*analysis.Analyzer{
 		asmdecl.Analyzer,
 		assign.Analyzer,
 		atomic.Analyzer,
@@ -90,14 +90,12 @@ var (
 )
 
 func main() {
-	// gocrA := goanalysis.DummyRun()
-
 	mychecks := []*analysis.Analyzer{
-		// gocrA,
 		OsExitAnalyzer,
 	}
 
-	// добавляем анализаторы из staticcheck, которые указаны в файле конфигурации
+	// Добавляем все анализаторы класса SA пакета staticcheck.io
+	// категория проверок SA под кодовым названием staticcheck включает все проверки, связанные с правильностью кода.
 	for _, v := range staticcheck.Analyzers {
 
 		if strings.HasPrefix(v.Analyzer.Name, "SA") {
@@ -105,25 +103,21 @@ func main() {
 		}
 	}
 
-	// if v, ok := staticcheck.Analyzers; ok {
-	// 	mychecks = append(mychecks, v)
-	// }
+	// Добавляем проверку на неправильно выбранный идентификатор
 	for _, v := range staticcheck.Analyzers {
 		if v.Analyzer.Name == "ST1003" {
 			mychecks = append(mychecks, v.Analyzer)
 			break
 		}
 	}
-
-	// Adding all analyzers from Golang-ci
-
-	mychecks = append(mychecks, allAnalyzers...)
-
+	// Добавляем все анализаторы статического анализатора Go-Critic
+	mychecks = append(mychecks, goCroticAnalyzers...)
 	multichecker.Main(
 		mychecks...,
 	)
 }
 
+// Проверка на отсутствие конструкции os.Exit() в функции main пакета main
 var OsExitAnalyzer = &analysis.Analyzer{
 	Name: "osexitcheck",
 	Doc:  "check calling os.Exit in main Function",
@@ -132,14 +126,22 @@ var OsExitAnalyzer = &analysis.Analyzer{
 
 func runOS(pass *analysis.Pass) (interface{}, error) {
 
+	var mainfunc string
 	for _, file := range pass.Files {
 		ast.Inspect(file, func(n ast.Node) bool {
+			if p, ok := n.(*ast.FuncDecl); ok {
+				mainfunc = p.Name.Name
+			}
+
 			if c, ok := n.(*ast.CallExpr); ok {
 
 				res := fmt.Sprintf("%s", c.Fun)
 
 				if res == "&{os Exit}" {
-					pass.Reportf(c.Pos(), "using os Exit!")
+					if mainfunc == "main" {
+
+						pass.Reportf(c.Pos(), "using os Exit!")
+					}
 
 				}
 			}

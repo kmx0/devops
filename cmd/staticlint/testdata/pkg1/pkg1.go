@@ -11,3 +11,8 @@ func main() {
 	fmt.Println("1")
 	os.Exit(0) // want "using os Exit!"
 }
+
+func failmain() {
+	fmt.Println("1")
+	os.Exit(0)
+}
