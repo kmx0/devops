@@ -20,13 +20,28 @@ import (
 )
 
 var (
-	rm *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
+	rm           *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
+	buildVersion string
+	buildDate    string
+	buildCommit  string
 )
 
 func main() {
 	logrus.SetReportCaller(true)
 	cfg := config.LoadConfig()
 	config.ReplaceUnusedInAgent(&cfg)
+	if buildVersion == "" {
+		buildVersion = "N/A"
+	}
+	if buildDate == "" {
+		buildDate = "N/A"
+	}
+	if buildCommit == "" {
+		buildCommit = "N/A"
+	}
+	fmt.Printf("Build version: %s", buildVersion)
+	fmt.Printf("Build date: %s", buildDate)
+	fmt.Printf("Build commit: %s", buildCommit)
 	logrus.Infof("CFG for AGENT %+v", cfg)
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
@@ -94,13 +109,12 @@ func main() {
 
 }
 
-//sending Metrics use JSON format
+// sending Metrics use JSON format
 func SendMetricsJSON(cfg config.Config) error {
 	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
 	client := &http.Client{}
 
-	logrus.Info(cfg)
 	for i := 0; i < len(metricsForBody); i++ {
 		if cfg.Key != "" {
 			AddHash(cfg.Key, &metricsForBody[i])
