@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,11 +28,21 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	store := storage.NewInMemory(cfg)
 	cfg = cf
 	SetRepository(store)
+	var privateKey *rsa.PrivateKey
+	var err error
+	if cf.CryptoKey != "" {
+		privateKey, err = crypto.ReadPrivateKey(cfg.CryptoKey)
+		if err != nil {
+			logrus.Error(err)
+			return nil, nil
+		}
 
+	}
 	r := gin.New()
 	r.Use(gin.Recovery(),
 		Compress(),
 		Decompress(),
+		Decrypt(privateKey),
 		gin.Logger())
 	//Added for profiling
 	//Listen in address:port/debug/pprof
@@ -192,6 +203,7 @@ func HandleUpdateJSON(c *gin.Context) {
 	decoder := json.NewDecoder(body)
 	var metrics types.Metrics
 	err := decoder.Decode(&metrics)
+	c.Header("Content-Length", "0")
 	if err != nil {
 		logrus.Error(err)
 		c.Status(http.StatusInternalServerError)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,12 +25,22 @@ var (
 	buildVersion string
 	buildDate    string
 	buildCommit  string
+	publicKey    *rsa.PublicKey
+	err          error
 )
 
 func main() {
 	logrus.SetReportCaller(true)
 	cfg := config.LoadConfig()
 	config.ReplaceUnusedInAgent(&cfg)
+	if cfg.CryptoKey != "" {
+		publicKey, err = crypto.ReadPublicKey(cfg.CryptoKey)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+
+	}
 	if buildVersion == "" {
 		buildVersion = "N/A"
 	}
@@ -124,6 +135,13 @@ func SendMetricsJSON(cfg config.Config) error {
 			logrus.Error(err)
 			continue
 		}
+		if cfg.CryptoKey != "" {
+			bodyBytes, err = crypto.EncryptData(*publicKey, bodyBytes)
+			if err != nil {
+				logrus.Error(err)
+				break
+			}
+		}
 		bodyIOReader := bytes.NewReader(bodyBytes)
 		request, err := http.NewRequest(http.MethodPost, endpoint, bodyIOReader)
 		errors.Is(nil, err)
@@ -133,6 +151,10 @@ func SendMetricsJSON(cfg config.Config) error {
 		}
 
 		request.Header.Add("Content-Type", "application/json")
+		// if cfg.CryptoKey != "" {
+		// 	request.Header.Add("Encrypted", "true")
+
+		// }
 		response, err := client.Do(request)
 		if err != nil {
 			logrus.Error("Error on requesting")
