@@ -39,11 +39,20 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 
 	}
 	r := gin.New()
-	r.Use(gin.Recovery(),
-		Compress(),
-		Decompress(),
-		Decrypt(privateKey),
-		gin.Logger())
+	if cf.CryptoKey != "" {
+
+		r.Use(gin.Recovery(),
+			Compress(),
+			Decompress(),
+			Decrypt(privateKey),
+			gin.Logger())
+	} else {
+
+		r.Use(gin.Recovery(),
+			Compress(),
+			Decompress(),
+			gin.Logger())
+	}
 	//Added for profiling
 	//Listen in address:port/debug/pprof
 	pprof.Register(r)
@@ -203,7 +212,7 @@ func HandleUpdateJSON(c *gin.Context) {
 	decoder := json.NewDecoder(body)
 	var metrics types.Metrics
 	err := decoder.Decode(&metrics)
-	c.Header("Content-Length", "0")
+	// c.Header("Content-Length", "0")
 	if err != nil {
 		logrus.Error(err)
 		c.Status(http.StatusInternalServerError)

@@ -31,8 +31,7 @@ func (w aesWriter) Write(b []byte) (int, error) {
 // поле Accept-Encoding.
 func Decrypt(privateKey *rsa.PrivateKey) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logrus.Info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111")
-		logrus.Info("decryptinhg")
+
 		if c.Request.Method == "GET" {
 			c.Next()
 			return

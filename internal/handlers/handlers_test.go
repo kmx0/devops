@@ -140,7 +140,27 @@ func TestHandleUpdate(t *testing.T) {
 func TestHandleUpdateJSON(t *testing.T) {
 	cfg = config.Config{
 		Key: "hashkey",
+		// cfg.CryptoKey: ,
 	}
+	// var publicKey *rsa.PublicKey
+	// // var privateKey *rsa.PrivateKey
+	// var err error
+	// if cfg.CryptoKey != "" {
+	// 	publicKey, err = crypto.ReadPublicKey(cfg.CryptoKey)
+	// 	if err != nil {
+	// 		logrus.Error(err)
+	// 		return
+	// 	}
+	// 	// privateKey, err = crypto.ReadPrivateKey(cfg.CryptoKey)
+	// 	// if err != nil {
+	// 	// 	logrus.Error(err)
+	// 	// 	return
+	// 	// }
+
+	// }
+	logrus.SetReportCaller(true)
+	logrus.Info("key = ",cfg.CryptoKey)
+	// return
 	s := storage.NewInMemory(cfg)
 	SetRepository(s)
 	type wantStruct struct {
@@ -217,9 +237,13 @@ func TestHandleUpdateJSON(t *testing.T) {
 			w := httptest.NewRecorder()
 			bodyBytes, err := json.Marshal(tt.body)
 			require.NoError(t, err)
+			// if cfg.CryptoKey != "" {
+			// 	bodyBytes, err = crypto.EncryptData(*publicKey, bodyBytes)
+			// 	require.NoError(t, err)
+			// }
 			bodyReader := bytes.NewReader(bodyBytes)
 			request, _ := http.NewRequest(http.MethodPost, tt.req, bodyReader)
-
+			// router.Use(Decrypt(privateKey))
 			router.ServeHTTP(w, request)
 			res := w.Result()
 
