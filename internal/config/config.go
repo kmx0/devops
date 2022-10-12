@@ -29,7 +29,7 @@ type Config struct {
 	// параметры базы данных
 	// например:
 	// "postgres://postgres:postgres@localhost:5432/metrics"
-	DBDSN     string `env:"DATABASE_DSN"`
+	DBDSN string `env:"DATABASE_DSN"`
 	// Файл с ключами:
 	// Публичный для агента
 	// И Приватный для сервера
@@ -114,4 +114,31 @@ func ReplaceUnusedInServer(cfg *Config) {
 		cfg.DBDSN = *dbDSN
 	}
 	// }
+}
+
+type ConfigJSON struct {
+	// Адрес, на котором будет запущен сервер
+	Address string `json:"address"`
+	// Интервал передачи метрик серверу
+	ReportInterval time.Duration `json:"report_interval"`
+	// Интервал заполнения метрик
+	PollInterval time.Duration `json:"poll_interval"`
+	// Частота сохранения метрик на стороне сервера
+	// Если равно 0, то необходимо сразу записывать в хранилище
+	StoreInterval time.Duration `json:"store_interval"`
+	// Файл для сохранения метрик
+	StoreFile string `json:"store_file,omitempty"`
+	// Необходимость восстанавливать данные из хранилища при запуске
+	Restore bool `json:"restore"`
+	// Фактически соль для хэшироварния данных при передаче
+	// и проверке при приеме
+	Key string `json:"key,omitempty" `
+	// параметры базы данных
+	// например:
+	// "postgres://postgres:postgres@localhost:5432/metrics"
+	DBDSN string `json:"database_dsn"`
+	// Файл с ключами:
+	// Публичный для агента
+	// И Приватный для сервера
+	CryptoKey string `json:"crypto_key"`
 }
