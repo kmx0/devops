@@ -115,6 +115,8 @@ func main() {
 	tickerFill.Stop()
 	logrus.Warn("Stopping tickerSendMetrics")
 	tickerSendMetrics.Stop()
+	logrus.Warn("Sending unsaved metrics")
+	SendMetricsJSON(cfg)
 	logrus.Warn("Exiting with code ", exitCode)
 	os.Exit(exitCode)
 
