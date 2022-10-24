@@ -22,9 +22,9 @@ import (
 
 var (
 	rm           *types.RunMetrics = &types.RunMetrics{MapMetrics: make(map[string]interface{})}
-	buildVersion string
-	buildDate    string
-	buildCommit  string
+	buildVersion string            = "N/A"
+	buildDate    string            = "N/A"
+	buildCommit  string            = "N/A"
 	publicKey    *rsa.PublicKey
 	err          error
 )
@@ -41,18 +41,11 @@ func main() {
 		}
 
 	}
-	if buildVersion == "" {
-		buildVersion = "N/A"
-	}
-	if buildDate == "" {
-		buildDate = "N/A"
-	}
-	if buildCommit == "" {
-		buildCommit = "N/A"
-	}
-	fmt.Printf("Build version: %s", buildVersion)
-	fmt.Printf("Build date: %s", buildDate)
-	fmt.Printf("Build commit: %s", buildCommit)
+	logrus.WithFields(logrus.Fields{
+		"build_version": buildVersion,
+		"build_date":    buildDate,
+		"build_commit":  buildCommit,
+	})
 	logrus.Infof("CFG for AGENT %+v", cfg)
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
@@ -67,24 +60,10 @@ func main() {
 	exitChan := make(chan int)
 	go func() {
 		for {
-			time.Sleep(3 * time.Second)
 			switch <-signalChanel {
-			case syscall.SIGINT:
-				logrus.Info("Signal interrupt triggered.")
-				exitChan <- 0
-				// kill -SIGTERM XXXX [XXXX - идентификатор процесса для программы]
-			case syscall.SIGTERM:
-				logrus.Info("Signal terminte triggered.")
-				exitChan <- 0
-
-				// kill -SIGQUIT XXXX [XXXX - идентификатор процесса для программы]
-			case syscall.SIGQUIT:
-				logrus.Info("Signal quit triggered.")
-				exitChan <- 0
-
 			default:
-				logrus.Info("Unknown signal.")
-				exitChan <- 1
+				logrus.Info("Exit Signal")
+				exitChan <- 0
 			}
 		}
 	}()
@@ -103,9 +82,7 @@ func main() {
 	go func() {
 		for {
 			<-tickerSendMetrics.C
-			now := time.Now()
 			SendMetricsJSON(cfg)
-			logrus.Info(time.Since(now))
 		}
 	}()
 

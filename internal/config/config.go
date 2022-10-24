@@ -1,7 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -34,6 +37,9 @@ type Config struct {
 	// Публичный для агента
 	// И Приватный для сервера
 	CryptoKey string `env:"CRYPTO_KEY"`
+	// Передача аргументов через конфиг JSON
+	// Имеет наименьший приоритет
+	ConfigJSON string `env:"CONFIG"`
 }
 
 // Парсинг значений из environment или опций запуска.
@@ -54,22 +60,56 @@ func ReplaceUnusedInAgent(cfg *Config) {
 	pollInterval := flag.Duration("p", 5000000000, "POLL_INTERVAL")
 	cryptoKey := flag.String("crypto-key", "", "CRYPTO_KEY")
 	key := flag.String("k", "", "KEY for hash")
+	configJSON := flag.String("c", "", "path to JSON config")
 	flag.Parse()
+	
+	var cfgJSON ConfigJSON
+	if _, ok := os.LookupEnv("CONFIG"); !ok {
+		cfg.ConfigJSON = *configJSON
+	}
+
+	if _, ok := os.LookupEnv("CONFIG"); ok || isFlagPassed("c") {
+		cfgJSON = LoadConfigJSON(cfg.ConfigJSON)
+	}
 	if _, ok := os.LookupEnv("ADDRESS"); !ok {
-		cfg.Address = *address
+		if isFlagPassed("c") && !isFlagPassed("a") {
+			cfg.Address = cfgJSON.Address
+		} else {
+			cfg.Address = *address
+		}
+
 	}
 
 	if _, ok := os.LookupEnv("REPORT_INTERVAL"); !ok {
-		cfg.ReportInterval = *reportInterval
+		if isFlagPassed("c") && !isFlagPassed("r") {
+			cfg.ReportInterval = cfgJSON.ReportInterval
+		} else {
+
+			cfg.ReportInterval = *reportInterval
+		}
 	}
 	if _, ok := os.LookupEnv("POLL_INTERVAL"); !ok {
-		cfg.PollInterval = *pollInterval
+		if isFlagPassed("c") && !isFlagPassed("p") {
+			cfg.PollInterval = cfgJSON.PollInterval
+		} else {
+
+			cfg.PollInterval = *pollInterval
+		}
 	}
 	if _, ok := os.LookupEnv("KEY"); !ok {
-		cfg.Key = *key
+		if isFlagPassed("c") && !isFlagPassed("k") {
+			cfg.Key = cfgJSON.Key
+		} else {
+
+			cfg.Key = *key
+		}
 	}
 	if _, ok := os.LookupEnv("CRYPTO_KEY"); !ok {
-		cfg.CryptoKey = *cryptoKey
+		if isFlagPassed("c") && !isFlagPassed("crypto-key") {
+			cfg.CryptoKey = cfgJSON.CryptoKey
+		} else {
+			cfg.CryptoKey = *cryptoKey
+		}
 	}
 }
 
@@ -84,34 +124,78 @@ func ReplaceUnusedInServer(cfg *Config) {
 	dbDSN := flag.String("d", "", "database URI")
 	cryptoKey := flag.String("ck", "", "crypto key for cipher")
 	key := flag.String("k", "", "KEY for hash")
+	configJSON := flag.String("c", "", "path to JSON config")
 
 	flag.Parse()
-
-	if _, ok := os.LookupEnv("ADDRESS"); !ok {
-		cfg.Address = *address
+	var cfgJSON ConfigJSON
+	if _, ok := os.LookupEnv("CONFIG"); !ok {
+		cfg.ConfigJSON = *configJSON
 	}
-	if _, ok := os.LookupEnv("RESTORE"); !ok {
 
-		cfg.Restore = *restore
+	if _, ok := os.LookupEnv("CONFIG"); ok || isFlagPassed("c") {
+		cfgJSON = LoadConfigJSON(cfg.ConfigJSON)
+	}
+	if _, ok := os.LookupEnv("ADDRESS"); !ok {
+		if isFlagPassed("c") && !isFlagPassed("a") {
+			cfg.Address = cfgJSON.Address
+		} else {
+			cfg.Address = *address
+		}
+
+	}
+
+	if _, ok := os.LookupEnv("RESTORE"); !ok {
+		if isFlagPassed("c") && !isFlagPassed("r") {
+
+			cfg.Restore = cfgJSON.Restore
+		} else {
+
+			cfg.Restore = *restore
+		}
+
 	}
 	if _, ok := os.LookupEnv("STORE_INTERVAL"); !ok {
+		if isFlagPassed("c") && !isFlagPassed("i") {
+			cfg.StoreInterval = cfgJSON.StoreInterval
+		} else {
 
-		cfg.StoreInterval = *storeInterval
+			cfg.StoreInterval = *storeInterval
+		}
 	}
+
 	if _, ok := os.LookupEnv("STORE_FILE"); !ok {
-		cfg.StoreFile = *storeFile
+		if isFlagPassed("c") && !isFlagPassed("f") {
+			cfg.StoreFile = cfgJSON.StoreFile
+		} else {
+
+			cfg.StoreFile = *storeFile
+		}
 	}
 	if _, ok := os.LookupEnv("KEY"); !ok {
-		cfg.Key = *key
+		if isFlagPassed("c") && !isFlagPassed("k") {
+			cfg.Key = cfgJSON.Key
+		} else {
+			cfg.Key = *key
+		}
 	}
 	if _, ok := os.LookupEnv("CRYPTO_KEY"); !ok {
-		cfg.CryptoKey = *cryptoKey
+		if isFlagPassed("c") && !isFlagPassed("ck") {
+			cfg.CryptoKey = cfgJSON.CryptoKey
+		} else {
+
+			cfg.CryptoKey = *cryptoKey
+		}
 	}
 	logrus.Info(cfg.DBDSN)
 	logrus.Info(*dbDSN)
 	if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
 		// if !strings.Contains(cfg.DBDSN, "incorr") {
-		cfg.DBDSN = *dbDSN
+		if isFlagPassed("c") && !isFlagPassed("d") {
+			cfg.DBDSN = cfgJSON.DBDSN
+		} else {
+
+			cfg.DBDSN = *dbDSN
+		}
 	}
 	// }
 }
@@ -141,4 +225,34 @@ type ConfigJSON struct {
 	// Публичный для агента
 	// И Приватный для сервера
 	CryptoKey string `json:"crypto_key"`
+}
+
+func isFlagPassed(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
+// Парсинг значений из environment или опций запуска.
+func LoadConfigJSON(configPath string) ConfigJSON {
+	var cfgJSON ConfigJSON
+	jsonFile, err := os.Open(configPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	// we initialize our Users array
+
+	// we unmarshal our byteArray which contains our
+	// jsonFile's content into 'users' which we defined above
+	json.Unmarshal(byteValue, &cfgJSON)
+
+	return cfgJSON
 }

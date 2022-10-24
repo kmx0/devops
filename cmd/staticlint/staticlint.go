@@ -137,7 +137,7 @@ func runOS(pass *analysis.Pass) (interface{}, error) {
 
 				res := fmt.Sprintf("%s", c.Fun)
 
-				if res == "&{os Exit}" {
+				if res == "&{os Exit}" || res == "&{log Fatal}" {
 					if mainfunc == "main" {
 
 						pass.Reportf(c.Pos(), "using os Exit!")
