@@ -40,6 +40,8 @@ type Config struct {
 	// Передача аргументов через конфиг JSON
 	// Имеет наименьший приоритет
 	ConfigJSON string `env:"CONFIG"`
+	// TRUSTED_SUBNET - доверенная сеть, с которой стоит принимать запросы
+	TrustedSubnet string `env:"TRUSTED_SUBNET"`
 }
 
 // Парсинг значений из environment или опций запуска.
@@ -62,7 +64,7 @@ func ReplaceUnusedInAgent(cfg *Config) {
 	key := flag.String("k", "", "KEY for hash")
 	configJSON := flag.String("c", "", "path to JSON config")
 	flag.Parse()
-	
+
 	var cfgJSON ConfigJSON
 	if _, ok := os.LookupEnv("CONFIG"); !ok {
 		cfg.ConfigJSON = *configJSON
@@ -125,6 +127,7 @@ func ReplaceUnusedInServer(cfg *Config) {
 	cryptoKey := flag.String("ck", "", "crypto key for cipher")
 	key := flag.String("k", "", "KEY for hash")
 	configJSON := flag.String("c", "", "path to JSON config")
+	trustedSubnet := flag.String("t", "", "trusted subnet")
 
 	flag.Parse()
 	var cfgJSON ConfigJSON
@@ -186,6 +189,16 @@ func ReplaceUnusedInServer(cfg *Config) {
 			cfg.CryptoKey = *cryptoKey
 		}
 	}
+
+	if _, ok := os.LookupEnv("TRUSTED_SUBNET"); !ok {
+		if isFlagPassed("c") && !isFlagPassed("t") {
+			cfg.TrustedSubnet = cfgJSON.TrustedSubnet
+		} else {
+
+			cfg.TrustedSubnet = *trustedSubnet
+		}
+	}
+
 	logrus.Info(cfg.DBDSN)
 	logrus.Info(*dbDSN)
 	if _, ok := os.LookupEnv("DATABASE_DSN"); !ok {
@@ -225,6 +238,8 @@ type ConfigJSON struct {
 	// Публичный для агента
 	// И Приватный для сервера
 	CryptoKey string `json:"crypto_key"`
+	// TRUSTED_SUBNET - доверенная сеть, с которой стоит принимать запросы
+	TrustedSubnet string `json:"trusted_subnet"`
 }
 
 func isFlagPassed(name string) bool {

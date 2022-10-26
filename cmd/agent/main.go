@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -57,13 +58,13 @@ func main() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
-	exitChan := make(chan int)
+	exitChan := make(chan struct{})
 	go func() {
 		for {
 			switch <-signalChanel {
 			default:
 				logrus.Info("Exit Signal")
-				exitChan <- 0
+				exitChan <- struct{}{}
 			}
 		}
 	}()
@@ -95,7 +96,7 @@ func main() {
 	logrus.Warn("Sending unsaved metrics")
 	SendMetricsJSON(cfg)
 	logrus.Warn("Exiting with code ", exitCode)
-	os.Exit(exitCode)
+	os.Exit(0)
 
 }
 
@@ -104,7 +105,7 @@ func SendMetricsJSON(cfg config.Config) error {
 	metricsForBody := rm.GetMetrics()
 	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
 	client := &http.Client{}
-
+	localIP := GetLocalIP()
 	for i := 0; i < len(metricsForBody); i++ {
 		if cfg.Key != "" {
 			AddHash(cfg.Key, &metricsForBody[i])
@@ -130,6 +131,7 @@ func SendMetricsJSON(cfg config.Config) error {
 		}
 
 		request.Header.Add("Content-Type", "application/json")
+		request.Header.Add("X-Real-IP", localIP)
 		// if cfg.CryptoKey != "" {
 		// 	request.Header.Add("Encrypted", "true")
 
@@ -166,4 +168,20 @@ func AddHash(key string, metricsP *types.Metrics) error {
 		return nil
 	}
 	return errors.New("unknown metric type")
+}
+
+func GetLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
 }

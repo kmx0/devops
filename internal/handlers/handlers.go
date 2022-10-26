@@ -42,6 +42,7 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	if cf.CryptoKey != "" {
 
 		r.Use(gin.Recovery(),
+			CheckTrusted(cfg.TrustedSubnet),
 			Compress(),
 			Decompress(),
 			Decrypt(privateKey),
@@ -49,10 +50,12 @@ func SetupRouter(cf config.Config) (*gin.Engine, *storage.InMemory) {
 	} else {
 
 		r.Use(gin.Recovery(),
+			CheckTrusted(cfg.TrustedSubnet),
 			Compress(),
 			Decompress(),
 			gin.Logger())
 	}
+
 	//Added for profiling
 	//Listen in address:port/debug/pprof
 	pprof.Register(r)

@@ -3,5 +3,6 @@
     "restore": true, 
     "store_interval": 10000000000,
     "store_file": "/tmp/devops-metrics-db.json", 
-    "database_dsn": ""
+    "database_dsn": "",
+    "trusted_subnet": "192.168.11.0/24"
 } 
