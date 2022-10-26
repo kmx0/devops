@@ -11,6 +11,7 @@ func CheckTrusted(trustedSubnet string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if trustedSubnet == "" {
 			c.Next()
+			return
 		}
 		ip := c.GetHeader("X-Real-IP")
 		_, subnet, _ := net.ParseCIDR(trustedSubnet)
