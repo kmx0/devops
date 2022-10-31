@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package rpc;
+
+option go_package = "github.com/kmx0/devops/internal/rpc/proto";
+
+message Empty {}
+
+enum Type {
+    UNKNOWN = 0;
+    COUNTER = 1;
+    GAUGE   = 2;
+  }
+  
+message Metric {
+    string  id        = 1;
+    Type    type      = 2;
+    string  hash      = 3;
+    oneof   value {
+      int64   counter = 4;
+      double  gauge   = 5;
+    }
+}
+  
+
+
+service Alerting{
+    rpc Update (UpdateRequest) returns (Empty);
+}
+
+message UpdateRequest {
+    repeated Metric metrics = 1;
+}
+
+// service Users {
+//   rpc AddUser(AddUserRequest) returns (AddUserResponse);
+//   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+//   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+//   // (4) добавьте интерфейс DelUser
+//   rpc DelUser(DelUserRequest) returns (DelUserResponse);
+// }
