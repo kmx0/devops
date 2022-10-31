@@ -3,24 +3,25 @@ package rpc
 import (
 	"context"
 	"net"
+	"strings"
 
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/repositories"
 	"github.com/kmx0/devops/internal/rpc/proto"
+	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
 type RPCServer struct {
 	trusted  *net.IPNet
-	s        repositories.Repository
+	store    repositories.Repository
 	g        *grpc.Server
 	servOpts []grpc.ServerOption
-	key      []byte
+	cfg      config.Config
 	proto.UnimplementedAlertingServer
 }
 
@@ -48,48 +49,55 @@ func (s *RPCServer) Update(ctx context.Context, req *proto.UpdateRequest) (*prot
 	return &proto.Empty{}, nil
 }
 
-func (s *RPCServer) saveMetric(req *proto.Metric, peer string) error {
-	m := metrics.Metrics{
+func (s *RPCServer) saveMetric(req *proto.Metric) error {
+	metrics := types.Metrics{
 		ID:   req.Id,
 		Hash: req.Hash,
 	}
 	switch req.GetType() {
 	case proto.Type_COUNTER:
-		m.MType = metrics.CounterType
+		metrics.MType = "counter"
 		v := req.GetCounter()
-		m.Delta = &v
+		metrics.Delta = &v
 	case proto.Type_GAUGE:
-		m.MType = metrics.GaugeType
+		metrics.MType = "gauge"
 		v := req.GetGauge()
-		m.Value = &v
+		metrics.Value = &v
 	default:
-		return status.Error(codes.InvalidArgument, repositories.ErrWrongMetricType.Error())
+		return status.Error(codes.InvalidArgument, "Неизвестный тип метрики")
 	}
-	if len(s.key) != 0 {
-		recived := m.Hash
-		err := m.Sign(s.key)
-		if err != nil || recived != m.Hash {
-			return status.Error(codes.InvalidArgument, "подпись не соответствует ожиданиям")
+	if metrics.MType == "counter" || metrics.MType == "gauge" {
+		err := s.store.UpdateJSON(s.cfg.Key, metrics)
+
+		if err != nil {
+			logrus.Error(err)
+
+			switch {
+			case strings.Contains(err.Error(), `received nil pointer on Delta`) || strings.Contains(err.Error(), `received nil pointer on Value`):
+				return status.Error(codes.InvalidArgument, "Отправлено пустое значение")
+			case strings.Contains(err.Error(), `hash sum not matched`):
+				return status.Error(codes.InvalidArgument, "Хэш-сумма не совпала")
+			default:
+				return status.Error(codes.Internal, "")
+			}
+		} else if s.cfg.StoreInterval == 0 || s.cfg.DBDSN != "" {
+			s.store.SaveToDisk(s.cfg)
+
 		}
-	}
-	if err := s.s.UpdateMetric(context.TODO(), peer, m); err != nil {
-		switch err {
-		case repositories.ErrWrongMetricURL:
-			return status.Error(codes.NotFound, err.Error())
-		case repositories.ErrWrongMetricValue:
-			return status.Error(codes.InvalidArgument, err.Error())
-		case repositories.ErrWrongValueInStorage:
-			return status.Error(codes.Unimplemented, err.Error())
-		default:
-			return status.Error(codes.Internal, err.Error())
-		}
+		logrus.Info("Wrtiting data: ", metrics)
+
+	} else {
+		return status.Error(codes.Unimplemented, "")
 	}
 	return nil
 }
 
 func NewRPCServer(cfg config.Config, store repositories.Repository, listen string) (*RPCServer, error) {
+	_, subnet, _ := net.ParseCIDR(cfg.TrustedSubnet)
 	serv := &RPCServer{
-		s: store,
+		store:   store,
+		cfg:     cfg,
+		trusted: subnet,
 	}
 	RPCServer := grpc.NewServer(serv.servOpts...)
 	proto.RegisterAlertingServer(RPCServer, serv)
@@ -112,6 +120,9 @@ func NewRPCServer(cfg config.Config, store repositories.Repository, listen strin
 
 func CheckTrusted(trustedSubnet *net.IPNet, realIP string) bool {
 
+	if trustedSubnet == nil {
+		return true
+	}
 	if !trustedSubnet.Contains(net.ParseIP(realIP)) {
 
 		return false

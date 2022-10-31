@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
@@ -17,8 +18,11 @@ import (
 
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/crypto"
+	rpc "github.com/kmx0/devops/internal/rpc/client"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -28,6 +32,7 @@ var (
 	buildCommit  string            = "N/A"
 	publicKey    *rsa.PublicKey
 	err          error
+	gconn        *grpc.ClientConn
 )
 
 func main() {
@@ -68,6 +73,13 @@ func main() {
 			}
 		}
 	}()
+	if cfg.GRPC {
+		gconn, err = grpc.Dial(cfg.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+	}
 	// every cfg.PollInterval seconds will filled RuntimeMemory values
 	tickerFill := time.NewTicker(cfg.PollInterval)
 	go func() {
@@ -83,7 +95,11 @@ func main() {
 	go func() {
 		for {
 			<-tickerSendMetrics.C
-			SendMetricsJSON(cfg)
+			if !cfg.GRPC {
+				SendMetricsJSON(cfg)
+			} else {
+				rpc.SendMetrics(context.TODO(), gconn, rm.GetMetrics())
+			}
 		}
 	}()
 
@@ -94,7 +110,11 @@ func main() {
 	logrus.Warn("Stopping tickerSendMetrics")
 	tickerSendMetrics.Stop()
 	logrus.Warn("Sending unsaved metrics")
-	SendMetricsJSON(cfg)
+	if !cfg.GRPC {
+		SendMetricsJSON(cfg)
+	} else {
+		rpc.SendMetrics(context.TODO(), gconn, rm.GetMetrics())
+	}
 	logrus.Warn("Exiting with code ", exitCode)
 	os.Exit(0)
 

@@ -9,8 +9,11 @@ import (
 
 	_ "net/http/pprof" // подключаем пакет pprof
 
+	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/handlers"
+	rpc "github.com/kmx0/devops/internal/rpc/server"
+	"github.com/kmx0/devops/internal/storage"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,6 +21,8 @@ var (
 	buildVersion string = "N/A"
 	buildDate    string = "N/A"
 	buildCommit  string = "N/A"
+	sm           *storage.InMemory
+	r            *gin.Engine
 )
 
 func main() {
@@ -47,7 +52,12 @@ func main() {
 	cfg := config.LoadConfig()
 	config.ReplaceUnusedInServer(&cfg)
 	logrus.Infof("CFG for SERVER  %+v", cfg)
-	r, sm := handlers.SetupRouter(cfg)
+	if !cfg.GRPC {
+		r, sm = handlers.SetupRouter(cfg)
+	} else {
+		sm = storage.NewInMemory(cfg)
+		rpc.NewRPCServer(cfg, sm, cfg.Address)
+	}
 	if cfg.Restore {
 		sm.RestoreFromDisk(cfg)
 	}
@@ -64,7 +74,10 @@ func main() {
 			}
 		}()
 	}
-	go http.ListenAndServe(cfg.Address, r)
+	if !cfg.GRPC {
+
+		go http.ListenAndServe(cfg.Address, r)
+	}
 	exitCode := <-exitChan
 	//stoping ticker
 	logrus.Warn("Stopping tickerStore")

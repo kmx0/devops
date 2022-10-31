@@ -42,6 +42,7 @@ type Config struct {
 	ConfigJSON string `env:"CONFIG"`
 	// TRUSTED_SUBNET - доверенная сеть, с которой стоит принимать запросы
 	TrustedSubnet string `env:"TRUSTED_SUBNET"`
+	GRPC          bool
 }
 
 // Парсинг значений из environment или опций запуска.
@@ -63,7 +64,11 @@ func ReplaceUnusedInAgent(cfg *Config) {
 	cryptoKey := flag.String("crypto-key", "", "CRYPTO_KEY")
 	key := flag.String("k", "", "KEY for hash")
 	configJSON := flag.String("c", "", "path to JSON config")
+	grpc := flag.Bool("g", false, "enable GRPC transport")
+
 	flag.Parse()
+
+	cfg.GRPC = *grpc
 
 	var cfgJSON ConfigJSON
 	if _, ok := os.LookupEnv("CONFIG"); !ok {
@@ -128,8 +133,9 @@ func ReplaceUnusedInServer(cfg *Config) {
 	key := flag.String("k", "", "KEY for hash")
 	configJSON := flag.String("c", "", "path to JSON config")
 	trustedSubnet := flag.String("t", "", "trusted subnet")
-
+	grpc := flag.Bool("g", false, "enable GRPC transport")
 	flag.Parse()
+	cfg.GRPC = *grpc
 	var cfgJSON ConfigJSON
 	if _, ok := os.LookupEnv("CONFIG"); !ok {
 		cfg.ConfigJSON = *configJSON
@@ -240,6 +246,7 @@ type ConfigJSON struct {
 	CryptoKey string `json:"crypto_key"`
 	// TRUSTED_SUBNET - доверенная сеть, с которой стоит принимать запросы
 	TrustedSubnet string `json:"trusted_subnet"`
+	GRPC          bool   `json:"grpc"`
 }
 
 func isFlagPassed(name string) bool {
