@@ -6,6 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.9.1
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.8.1
+	github.com/golang/protobuf v1.5.2
 	github.com/golangci/golangci-lint v1.47.3
 	github.com/jackc/pgx/v4 v4.16.0
 	github.com/lib/pq v1.10.6
@@ -37,7 +38,6 @@ require (
 	github.com/go-toolsmith/strparse v1.0.0 // indirect
 	github.com/go-toolsmith/typep v1.0.2 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

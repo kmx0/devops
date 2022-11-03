@@ -1,19 +1,23 @@
-package rpc
+package metrics_server
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/kmx0/devops/internal/config"
+	"github.com/kmx0/devops/internal/crypto"
+	"github.com/kmx0/devops/internal/metrics_server/proto"
 	"github.com/kmx0/devops/internal/repositories"
-	"github.com/kmx0/devops/internal/rpc/proto"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type RPCServer struct {
@@ -22,12 +26,12 @@ type RPCServer struct {
 	g        *grpc.Server
 	servOpts []grpc.ServerOption
 	cfg      config.Config
-	proto.UnimplementedAlertingServer
+	proto.UnimplementedMetricsServiceServer
 }
 
-var _ proto.AlertingServer = (*RPCServer)(nil)
+var _ proto.MetricsServiceServer = (*RPCServer)(nil)
 
-func (s *RPCServer) Update(ctx context.Context, req *proto.UpdateRequest) (*proto.Empty, error) {
+func (s *RPCServer) UpdateMetricBatch(ctx context.Context, req *proto.UpdateMetricBatchRequest) (*empty.Empty, error) {
 	p, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.InvalidArgument, "адрес не определён")
@@ -46,7 +50,71 @@ func (s *RPCServer) Update(ctx context.Context, req *proto.UpdateRequest) (*prot
 			return nil, err
 		}
 	}
-	return &proto.Empty{}, nil
+	return &emptypb.Empty{}, nil
+}
+
+func (s *RPCServer) UpdateMetric(ctx context.Context, req *proto.UpdateMetricRequest) (*empty.Empty, error) {
+	p, ok := peer.FromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.InvalidArgument, "адрес не определён")
+	}
+	realIP, _, err := net.SplitHostPort(p.Addr.String())
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "access denied, bad ip")
+	}
+	if !CheckTrusted(s.trusted, realIP) {
+		return nil, status.Error(codes.InvalidArgument, "access denied, ip not Trusted")
+	}
+	err = s.saveMetric(req.Metric)
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (s *RPCServer) GetMetric(ctx context.Context, req *proto.GetMetricRequest) (*proto.Metric, error) {
+	p, ok := peer.FromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.InvalidArgument, "адрес не определён")
+	}
+	realIP, _, err := net.SplitHostPort(p.Addr.String())
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "access denied, bad ip")
+	}
+	if !CheckTrusted(s.trusted, realIP) {
+		return nil, status.Error(codes.InvalidArgument, "access denied, ip not Trusted")
+	}
+	switch req.Metric.Type.String() {
+	case "counter":
+		delta, err := s.store.GetCounterJSON(req.Metric.Id)
+		if err != nil {
+			return nil, err
+		}
+		req.Metric.Value = &proto.Metric_Counter{
+			Counter: delta,
+		}
+		if s.cfg.Key != "" {
+			req.Metric.Hash = crypto.Hash(fmt.Sprintf("%s:counter:%d", req.Metric.Id, req.Metric.GetCounter()), s.cfg.Key)
+		}
+		return req.Metric, nil
+	case "gauge":
+		value, err := s.store.GetGaugeJSON(req.Metric.Id)
+		if err != nil {
+			return nil, err
+		}
+		req.Metric.Value = &proto.Metric_Gauge{
+			Gauge: value,
+		}
+		if s.cfg.Key != "" {
+
+			req.Metric.Hash = crypto.Hash(fmt.Sprintf("%s:gauge:%f", req.Metric.Id, req.Metric.GetGauge()), s.cfg.Key)
+		}
+		return req.Metric, nil
+	default:
+		return &proto.Metric{}, nil
+	}
 }
 
 func (s *RPCServer) saveMetric(req *proto.Metric) error {
@@ -100,7 +168,7 @@ func NewRPCServer(cfg config.Config, store repositories.Repository, listen strin
 		trusted: subnet,
 	}
 	RPCServer := grpc.NewServer(serv.servOpts...)
-	proto.RegisterAlertingServer(RPCServer, serv)
+	proto.RegisterMetricsServiceServer(RPCServer, serv)
 	serv.g = RPCServer
 	if len(listen) != 0 {
 		go func() {
