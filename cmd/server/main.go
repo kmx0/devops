@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/handlers"
-	metrics_server "github.com/kmx0/devops/internal/metrics_server/server"
+	metricserver "github.com/kmx0/devops/internal/metricserver/server"
 	"github.com/kmx0/devops/internal/storage"
 	"github.com/sirupsen/logrus"
 )
@@ -56,7 +56,7 @@ func main() {
 		r, sm = handlers.SetupRouter(cfg)
 	} else {
 		sm = storage.NewInMemory(cfg)
-		metrics_server.NewRPCServer(cfg, sm, cfg.Address)
+		metricserver.NewRPCServer(cfg, sm, cfg.Address)
 	}
 	if cfg.Restore {
 		sm.RestoreFromDisk(cfg)

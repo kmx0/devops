@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package metrics_server;
+package metricserver;
 
-option go_package = "github.com/kmx0/devops/internal/metrics_server/proto";
+option go_package = "github.com/kmx0/devops/internal/metricserver/proto";
 import "google/protobuf/empty.proto";
 
 

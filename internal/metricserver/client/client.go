@@ -1,10 +1,10 @@
-package metrics_server
+package metricserver
 
 import (
 	"context"
 	"errors"
 
-	"github.com/kmx0/devops/internal/metrics_server/proto"
+	"github.com/kmx0/devops/internal/metricserver/proto"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

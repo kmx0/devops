@@ -1,4 +1,4 @@
-package metrics_server
+package metricserver
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/crypto"
-	"github.com/kmx0/devops/internal/metrics_server/proto"
+	"github.com/kmx0/devops/internal/metricserver/proto"
 	"github.com/kmx0/devops/internal/repositories"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"

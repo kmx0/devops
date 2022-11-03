@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.12.4
-// source: proto/metrics_server.proto
+// source: proto/metricserver.proto
 
 package proto
 
@@ -38,7 +38,7 @@ func NewMetricsServiceClient(cc grpc.ClientConnInterface) MetricsServiceClient {
 
 func (c *metricsServiceClient) UpdateMetricBatch(ctx context.Context, in *UpdateMetricBatchRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/metrics_server.MetricsService/UpdateMetricBatch", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metricserver.MetricsService/UpdateMetricBatch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *metricsServiceClient) UpdateMetricBatch(ctx context.Context, in *Update
 
 func (c *metricsServiceClient) UpdateMetric(ctx context.Context, in *UpdateMetricRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/metrics_server.MetricsService/UpdateMetric", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metricserver.MetricsService/UpdateMetric", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *metricsServiceClient) UpdateMetric(ctx context.Context, in *UpdateMetri
 
 func (c *metricsServiceClient) GetMetric(ctx context.Context, in *GetMetricRequest, opts ...grpc.CallOption) (*Metric, error) {
 	out := new(Metric)
-	err := c.cc.Invoke(ctx, "/metrics_server.MetricsService/GetMetric", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metricserver.MetricsService/GetMetric", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func _MetricsService_UpdateMetricBatch_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/metrics_server.MetricsService/UpdateMetricBatch",
+		FullMethod: "/metricserver.MetricsService/UpdateMetricBatch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MetricsServiceServer).UpdateMetricBatch(ctx, req.(*UpdateMetricBatchRequest))
@@ -127,7 +127,7 @@ func _MetricsService_UpdateMetric_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/metrics_server.MetricsService/UpdateMetric",
+		FullMethod: "/metricserver.MetricsService/UpdateMetric",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MetricsServiceServer).UpdateMetric(ctx, req.(*UpdateMetricRequest))
@@ -145,7 +145,7 @@ func _MetricsService_GetMetric_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/metrics_server.MetricsService/GetMetric",
+		FullMethod: "/metricserver.MetricsService/GetMetric",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MetricsServiceServer).GetMetric(ctx, req.(*GetMetricRequest))
@@ -157,7 +157,7 @@ func _MetricsService_GetMetric_Handler(srv interface{}, ctx context.Context, dec
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var MetricsService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "metrics_server.MetricsService",
+	ServiceName: "metricserver.MetricsService",
 	HandlerType: (*MetricsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -174,5 +174,5 @@ var MetricsService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/metrics_server.proto",
+	Metadata: "proto/metricserver.proto",
 }

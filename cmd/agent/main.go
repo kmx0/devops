@@ -18,7 +18,7 @@ import (
 
 	"github.com/kmx0/devops/internal/config"
 	"github.com/kmx0/devops/internal/crypto"
-	metrics_server "github.com/kmx0/devops/internal/metrics_server/client"
+	metricserver "github.com/kmx0/devops/internal/metricserver/client"
 	"github.com/kmx0/devops/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -98,7 +98,7 @@ func main() {
 			if !cfg.GRPC {
 				SendMetricsJSON(cfg)
 			} else {
-				metrics_server.SendMetricsBatch(context.TODO(), gconn, rm.GetMetrics())
+				metricserver.SendMetricsBatch(context.TODO(), gconn, rm.GetMetrics())
 			}
 		}
 	}()
@@ -113,7 +113,7 @@ func main() {
 	if !cfg.GRPC {
 		SendMetricsJSON(cfg)
 	} else {
-		metrics_server.SendMetricsBatch(context.TODO(), gconn, rm.GetMetrics())
+		metricserver.SendMetricsBatch(context.TODO(), gconn, rm.GetMetrics())
 	}
 	logrus.Warn("Exiting with code ", exitCode)
 	os.Exit(0)
